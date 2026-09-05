@@ -12,4 +12,4 @@ export default function Index() {
       <Text>CaoCao.</Text>
     </View>
   );
-}bvbv
+}
