@@ -1,0 +1,160 @@
+// ============================================================
+//  QUẢN LÝ CỬA HÀNG TẠP HÓA - Prisma Schema (SQL Server)
+//  Khớp 100% với database/schema.sql
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// ─── 1. NguoiDung ────────────────────────────────────────────
+model NguoiDung {
+  id        Int      @id @default(autoincrement())
+  hoTen     String   @db.NVarChar(100)
+  taiKhoan  String   @unique @db.NVarChar(50)
+  matKhau   String   @db.NVarChar(255)
+  vaiTro    String   @default("nhanvien") @db.NVarChar(20) // 'admin' | 'nhanvien'
+  trangThai Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.DateTime
+
+  phieuNhaps PhieuNhap[]
+  hoaDons    HoaDon[]
+
+  @@map("NguoiDung")
+}
+
+// ─── 2. SanPham ──────────────────────────────────────────────
+model SanPham {
+  id         Int      @id @default(autoincrement())
+  ten        String   @db.NVarChar(200)
+  thuongHieu String?  @db.NVarChar(100)
+  danhMuc    String   @db.NVarChar(100)
+  moTa       String?  @db.NVarChar(Max)
+  hinhAnh    String?  @db.NVarChar(500)
+  createdAt  DateTime @default(now()) @db.DateTime
+
+  bienThes BienThe[]
+
+  @@index([ten], map: "IX_SanPham_Ten")
+  @@index([danhMuc], map: "IX_SanPham_DanhMuc")
+  @@map("SanPham")
+}
+
+// ─── 3. BienThe ──────────────────────────────────────────────
+// Tách riêng giaTri (DECIMAL) và donVi (NVARCHAR) để sort/filter chính xác
+model BienThe {
+  id            Int     @id @default(autoincrement())
+  sanPhamId     Int
+  giaTri        Decimal @db.Decimal(10, 2) // phần số: 1, 500, 2.5
+  donVi         String  @db.NVarChar(20)   // "Lít", "ml", "kg", "g", "Cái", "Gói"
+  giaNhap       Decimal @default(0) @db.Decimal(12, 2)
+  giaBan        Decimal @db.Decimal(12, 2)
+  soLuongTon    Int     @default(0)
+  nguongCanhBao Int     @default(5)
+  trangThai     Boolean @default(true)
+
+  sanPham           SanPham            @relation(fields: [sanPhamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_BienThe_SanPham")
+  chiTietPhieuNhaps ChiTietPhieuNhap[]
+  chiTietHoaDons    ChiTietHoaDon[]
+
+  @@index([sanPhamId], map: "IX_BienThe_SanPhamId")
+  @@index([giaTri], map: "IX_BienThe_GiaTri")
+  @@map("BienThe")
+}
+
+// ─── 4. NhaCungCap ───────────────────────────────────────────
+model NhaCungCap {
+  id        Int      @id @default(autoincrement())
+  ten       String   @db.NVarChar(200)
+  sdt       String?  @db.NVarChar(20)
+  diaChi    String?  @db.NVarChar(300)
+  createdAt DateTime @default(now()) @db.DateTime
+
+  phieuNhaps PhieuNhap[]
+
+  @@map("NhaCungCap")
+}
+
+// ─── 5. PhieuNhap ────────────────────────────────────────────
+model PhieuNhap {
+  id           Int      @id @default(autoincrement())
+  nhaCungCapId Int
+  nguoiTaoId   Int
+  ngayNhap     DateTime @default(now()) @db.DateTime
+  tongTien     Decimal  @default(0) @db.Decimal(14, 2)
+  ghiChu       String?  @db.NVarChar(Max)
+
+  nhaCungCap NhaCungCap         @relation(fields: [nhaCungCapId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PhieuNhap_NhaCungCap")
+  nguoiTao   NguoiDung          @relation(fields: [nguoiTaoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PhieuNhap_NguoiDung")
+  chiTiets   ChiTietPhieuNhap[]
+
+  @@index([ngayNhap(sort: Desc)], map: "IX_PhieuNhap_NgayNhap")
+  @@map("PhieuNhap")
+}
+
+// ─── 6. ChiTietPhieuNhap ─────────────────────────────────────
+model ChiTietPhieuNhap {
+  id          Int     @id @default(autoincrement())
+  phieuNhapId Int
+  bienTheId   Int
+  soLuong     Int
+  giaNhap     Decimal @db.Decimal(12, 2)
+
+  phieuNhap PhieuNhap @relation(fields: [phieuNhapId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietPhieuNhap_PhieuNhap")
+  bienThe   BienThe   @relation(fields: [bienTheId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietPhieuNhap_BienThe")
+
+  @@map("ChiTietPhieuNhap")
+}
+
+// ─── 7. KhachHang ────────────────────────────────────────────
+model KhachHang {
+  id        Int      @id @default(autoincrement())
+  ten       String   @db.NVarChar(200)
+  sdt       String?  @db.NVarChar(20)
+  diaChi    String?  @db.NVarChar(300)
+  createdAt DateTime @default(now()) @db.DateTime
+
+  hoaDons HoaDon[]
+
+  @@map("KhachHang")
+}
+
+// ─── 8. HoaDon ───────────────────────────────────────────────
+model HoaDon {
+  id          Int      @id @default(autoincrement())
+  nguoiBanId  Int
+  khachHangId Int? // nullable: khách vãng lai
+  ngayBan     DateTime @default(now()) @db.DateTime
+  tongTien    Decimal  @default(0) @db.Decimal(14, 2)
+  giamGia     Decimal  @default(0) @db.Decimal(12, 2)
+  hinhThucTT  String   @default("tienmat") @db.NVarChar(20) // 'tienmat' | 'chuyenkhoan' | 'congno'
+  trangThaiTT String   @default("daTT") @db.NVarChar(10) // 'daTT' | 'chuaTT'
+
+  nguoiBan  NguoiDung       @relation(fields: [nguoiBanId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_HoaDon_NguoiDung")
+  khachHang KhachHang?      @relation(fields: [khachHangId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_HoaDon_KhachHang")
+  chiTiets  ChiTietHoaDon[]
+
+  @@index([ngayBan(sort: Desc)], map: "IX_HoaDon_NgayBan")
+  @@index([nguoiBanId], map: "IX_HoaDon_NguoiBanId")
+  @@map("HoaDon")
+}
+
+// ─── 9. ChiTietHoaDon ────────────────────────────────────────
+model ChiTietHoaDon {
+  id        Int     @id @default(autoincrement())
+  hoaDonId  Int
+  bienTheId Int
+  soLuong   Int
+  donGia    Decimal @db.Decimal(12, 2) // LƯU CỨNG giá tại thời điểm bán
+  thanhTien Decimal @db.Decimal(14, 2)
+
+  hoaDon  HoaDon  @relation(fields: [hoaDonId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietHoaDon_HoaDon")
+  bienThe BienThe @relation(fields: [bienTheId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietHoaDon_BienThe")
+
+  @@map("ChiTietHoaDon")
+}

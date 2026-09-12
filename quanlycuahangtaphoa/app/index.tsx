@@ -1,9 +1,15 @@
-import { Redirect } from 'expo-router';
-import { useAuth } from '../hooks/useAuth';
+import { Text, View } from "react-native";
 
 export default function Index() {
-  const { state } = useAuth();
-  return state.nguoiDung
-    ? <Redirect href="/(tabs)/banhang" />
-    : <Redirect href="/login" />;
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Text>CaoCao.</Text>
+    </View>
+  );
 }
