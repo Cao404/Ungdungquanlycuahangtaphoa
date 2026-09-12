@@ -5,6 +5,6 @@ import { useAuthStore } from '../store/authStore';
 export default function Index() {
   const token = useAuthStore((s) => s.token);
   return token
-    ? <Redirect href="/(tabs)/banhang" />
+    ? <Redirect href="/(tabs)" />
     : <Redirect href="/login" />;
 }

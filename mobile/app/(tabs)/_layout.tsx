@@ -1,17 +1,26 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { useGioHangStore } from '../../store/gioHangStore';
+import { Text } from 'react-native';
+import type { ColorValue } from 'react-native';
 import Colors from '../../constants/colors';
 
-export default function TabsLayout() {
-  const soMon = useGioHangStore((s) => s.soMon());
+function TabIcon({ icon, color }: { icon: string; color: ColorValue }) {
+  return <Text style={{ color, fontSize: 20 }}>{icon}</Text>;
+}
 
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
-        tabBarStyle: { borderTopColor: Colors.border, backgroundColor: Colors.surface },
+        tabBarStyle: {
+          borderTopColor: Colors.border,
+          backgroundColor: Colors.surface,
+          height: 64,
+          paddingTop: 6,
+          paddingBottom: 7,
+        },
         tabBarLabelStyle: { fontWeight: '600', fontSize: 11 },
         headerStyle: { backgroundColor: Colors.surface },
         headerTintColor: Colors.text,
@@ -19,21 +28,39 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="banhang/index"
-        options={{ title: 'Bán hàng', tabBarIcon: () => null }}
-      />
-      <Tabs.Screen
-        name="giohang"
+        name="index"
         options={{
-          title: 'Giỏ hàng',
-          tabBarBadge: soMon > 0 ? soMon : undefined,
-          tabBarIcon: () => null,
+          title: 'Trang chủ',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabIcon icon="⌂" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="lichsu"
-        options={{ title: 'Lịch sử', tabBarIcon: () => null }}
+        name="catalog"
+        options={{
+          title: 'Sản phẩm',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabIcon icon="▦" color={color} />,
+        }}
       />
+      <Tabs.Screen
+        name="khuyenmai"
+        options={{
+          title: 'Khuyến mãi',
+          tabBarIcon: ({ color }) => <TabIcon icon="%" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="lienhe"
+        options={{
+          title: 'Liên hệ',
+          tabBarIcon: ({ color }) => <TabIcon icon="☎" color={color} />,
+        }}
+      />
+      <Tabs.Screen name="banhang/index" options={{ href: null }} />
+      <Tabs.Screen name="sanpham" options={{ href: null }} />
+      <Tabs.Screen name="giohang" options={{ href: null }} />
+      <Tabs.Screen name="lichsu" options={{ href: null }} />
     </Tabs>
   );
 }

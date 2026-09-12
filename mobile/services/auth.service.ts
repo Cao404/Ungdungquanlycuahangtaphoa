@@ -9,4 +9,7 @@ interface LoginResponse {
 export const authService = {
   login: (taiKhoan: string, matKhau: string) =>
     apiPost<LoginResponse>('/auth/login', { taiKhoan, matKhau }),
+
+  register: (hoTen: string, taiKhoan: string, matKhau: string) =>
+    apiPost<NguoiDung>('/auth/register', { hoTen, taiKhoan, matKhau }),
 };

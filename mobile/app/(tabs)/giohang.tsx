@@ -128,7 +128,10 @@ const styles = StyleSheet.create({
   empty:   { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 },
   emptyIcon: { fontSize: 60 },
   emptyTxt: { fontSize: 18, color: Colors.textMuted, fontWeight: '600' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
+  overlay: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,

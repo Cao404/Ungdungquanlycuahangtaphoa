@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet,
-  KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard,
+  KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useAuth } from '../hooks/useAuth';
 import Button from '../components/ui/Button';
 import Colors from '../constants/colors';
 import { APP_NAME } from '../constants/config';
 
 export default function LoginScreen() {
-  const { login, loading, error } = useAuth();
   const [taiKhoan, setTaiKhoan] = useState('');
   const [matKhau, setMatKhau] = useState('');
 
-  const handleLogin = async () => {
-    const ok = await login(taiKhoan.trim(), matKhau);
-    if (ok) router.replace('/(tabs)/banhang');
-  };
+  // Chế độ xem thử giao diện: tạm thời bỏ qua xác thực backend.
+  const handleLogin = () => router.replace('/(tabs)');
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -47,8 +43,14 @@ export default function LoginScreen() {
             returnKeyType="done"
             onSubmitEditing={handleLogin}
           />
-          {error && <Text style={styles.error}>{error}</Text>}
-          <Button title="Đăng nhập" onPress={handleLogin} loading={loading} size="lg" />
+          <Button title="Đăng nhập" onPress={handleLogin} size="lg" />
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Chưa có tài khoản? </Text>
+            <TouchableOpacity onPress={() => router.push('/register')} activeOpacity={0.7}>
+              <Text style={styles.footerLink}>Đăng ký</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
@@ -66,5 +68,7 @@ const styles = StyleSheet.create({
     borderRadius: 10, paddingHorizontal: 16, paddingVertical: 13,
     fontSize: 15, color: Colors.text,
   },
-  error: { color: Colors.danger, fontSize: 13, textAlign: 'center' },
+  footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 8 },
+  footerText: { color: Colors.textSecondary, fontSize: 14 },
+  footerLink: { color: Colors.primary, fontSize: 14, fontWeight: '700' },
 });

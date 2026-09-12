@@ -23,5 +23,20 @@ export function useAuth() {
     }
   };
 
-  return { nguoiDung, login, logout, loading, error };
+  const register = async (hoTen: string, taiKhoan: string, matKhau: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.register(hoTen, taiKhoan, matKhau);
+      return true;
+    } catch (e: any) {
+      const msg = e?.response?.data?.message ?? e.message ?? 'Đăng ký thất bại';
+      setError(msg);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { nguoiDung, login, register, logout, loading, error };
 }

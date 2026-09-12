@@ -3,7 +3,7 @@ import {
   View, FlatList, TextInput, StyleSheet,
   ActivityIndicator, Text, ScrollView, TouchableOpacity,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useFetch } from '../../../hooks/useFetch';
 import { useGioHang } from '../../../hooks/useGioHang';
 import SanPhamCard from '../../../components/SanPhamCard';
@@ -11,10 +11,13 @@ import { sanPhamService } from '../../../services/sanpham.service';
 import { SanPham } from '../../../types/SanPham';
 import Colors from '../../../constants/colors';
 
+export { default } from '../../../components/ProductCatalogScreen';
+
 const DANH_MUC = ['Tất cả', 'Thực phẩm', 'Đồ uống', 'Gia vị', 'Chăm sóc', 'Khác'];
 
-export default function BanHangScreen() {
-  const [query, setQuery] = useState('');
+export function LegacyBanHangScreen() {
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  const [query, setQuery] = useState(typeof q === 'string' ? q : '');
   const [danhMuc, setDanhMuc] = useState('');
   const { soMon } = useGioHang();
 

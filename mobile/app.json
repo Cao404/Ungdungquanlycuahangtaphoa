@@ -5,10 +5,18 @@
     "version": "1.0.0",
     "scheme": "quanlytaphoa",
     "orientation": "portrait",
-    "platforms": ["ios", "android"],
-    "plugins": ["expo-router"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-status-bar"
+    ],
     "extra": {
-      "API_BASE_URL": "http://192.168.1.100:8080/api"
+      "API_BASE_URL": "http://192.168.1.234:8080/api"
     }
   }
 }
