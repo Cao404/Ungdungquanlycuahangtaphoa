@@ -1,5 +1,5 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
+import React, { useEffect } from 'react';
+import { router, Tabs, usePathname } from 'expo-router';
 import { Text } from 'react-native';
 import type { ColorValue } from 'react-native';
 import Colors from '../../constants/colors';
@@ -9,6 +9,19 @@ function TabIcon({ icon, color }: { icon: string; color: ColorValue }) {
 }
 
 export default function TabsLayout() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname === '/') {
+      router.replace('/(tabs)/homepage');
+      return;
+    }
+
+    if (pathname.endsWith('/lienhe')) {
+      router.replace('/(tabs)/contact');
+    }
+  }, [pathname]);
+
   return (
     <Tabs
       screenOptions={{
@@ -28,7 +41,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="homepage"
         options={{
           title: 'Trang chủ',
           headerShown: false,
@@ -36,7 +49,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="catalog"
+        name="sanpham"
         options={{
           title: 'Sản phẩm',
           headerShown: false,
@@ -51,14 +64,17 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="lienhe"
+        name="contact"
         options={{
           title: 'Liên hệ',
           tabBarIcon: ({ color }) => <TabIcon icon="☎" color={color} />,
         }}
       />
+      <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="banhang/index" options={{ href: null }} />
-      <Tabs.Screen name="sanpham" options={{ href: null }} />
+      <Tabs.Screen name="banhang/chon-bien-the" options={{ href: null }} />
+      <Tabs.Screen name="catalog" options={{ href: null }} />
+      <Tabs.Screen name="lienhe" options={{ href: null }} />
       <Tabs.Screen name="giohang" options={{ href: null }} />
       <Tabs.Screen name="lichsu" options={{ href: null }} />
     </Tabs>
