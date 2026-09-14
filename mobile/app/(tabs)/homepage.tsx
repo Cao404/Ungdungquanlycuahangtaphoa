@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import Colors from '../../constants/colors';
-import { APP_NAME } from '../../constants/config';
 import { HOME_BANNER_IMAGES } from '../../constants/home';
 import { useAuthStore } from '../../store/authStore';
 import { useGioHangStore } from '../../store/gioHangStore';
@@ -87,13 +86,9 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <Text style={styles.menuIcon}>☰</Text>
-            <View style={styles.brand}>
-              <Text style={styles.brandIcon}>🏪</Text>
-              <View>
-                <Text style={styles.brandName}>{APP_NAME}</Text>
-                <Text style={styles.brandSub}>Tạp hóa tiện lợi mỗi ngày</Text>
-              </View>
-            </View>
+            <Text style={styles.welcome} numberOfLines={1}>
+              Xin chào, {nguoiDung?.hoTen ?? 'bạn'}!
+            </Text>
 
             <TouchableOpacity
               style={styles.cartButton}
@@ -108,10 +103,6 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
           </View>
-
-          <Text style={styles.welcome} numberOfLines={1}>
-            Xin chào, {nguoiDung?.hoTen ?? 'bạn'}!
-          </Text>
 
           <View style={styles.searchRow}>
             <TextInput
@@ -219,11 +210,7 @@ const styles = StyleSheet.create({
   header: { backgroundColor: Colors.primary, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16 },
   headerTop: { flexDirection: 'row', alignItems: 'center' },
   menuIcon: { color: Colors.white, fontSize: 26, marginRight: 12 },
-  brand: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  brandIcon: { fontSize: 32, marginRight: 8 },
-  brandName: { color: Colors.white, fontSize: 17, fontWeight: '800' },
-  brandSub: { color: '#CCFBF1', fontSize: 10, marginTop: 1 },
-  welcome: { color: '#E6FFFB', fontSize: 12, marginTop: 8, marginLeft: 40 },
+  welcome: { flex: 1, color: Colors.white, fontSize: 16, fontWeight: '700' },
   cartButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   cartIcon: { fontSize: 26 },
   badge: {
@@ -306,4 +293,3 @@ const styles = StyleSheet.create({
   infoText: { color: Colors.text, fontSize: 13, lineHeight: 20 },
   contactText: { flex: 1, color: Colors.text, fontSize: 14, lineHeight: 20 },
 });
-

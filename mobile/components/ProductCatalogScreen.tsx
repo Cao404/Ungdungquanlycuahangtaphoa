@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -61,14 +62,20 @@ export default function ProductCatalogScreen() {
   const { themSanPham } = useGioHang();
   const [showFilters, setShowFilters] = useState(false);
   const [filter, setFilter] = useState('Tất cả');
+  const [query, setQuery] = useState('');
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  const products = useMemo(
-    () => filter === 'Tất cả'
-      ? CATALOG_PRODUCTS
-      : CATALOG_PRODUCTS.filter((product) => product.category === filter),
-    [filter],
-  );
+  const products = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase('vi-VN');
+
+    return CATALOG_PRODUCTS.filter((product) => {
+      const matchesFilter = filter === 'Tất cả' || product.category === filter;
+      const matchesQuery = !normalizedQuery
+        || product.name.toLocaleLowerCase('vi-VN').includes(normalizedQuery);
+
+      return matchesFilter && matchesQuery;
+    });
+  }, [filter, query]);
 
   const handleAdd = (product: CatalogProduct) => {
     const sanPham: SanPham = {
@@ -93,6 +100,19 @@ export default function ProductCatalogScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        <View style={styles.searchWrap}>
+          <Text style={styles.searchIcon}>⌕</Text>
+          <TextInput
+            style={styles.searchInput}
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Tìm kiếm sản phẩm..."
+            placeholderTextColor={Colors.textMuted}
+            autoCapitalize="none"
+            clearButtonMode="while-editing"
+          />
+        </View>
+
         <View style={styles.toolbar}>
           <TouchableOpacity
             style={[styles.filterButton, showFilters && styles.filterButtonActive]}
@@ -147,6 +167,21 @@ export default function ProductCatalogScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Colors.surface },
   container: { flex: 1, backgroundColor: '#F3F4F6' },
+  searchWrap: {
+    height: 50,
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+  },
+  searchIcon: { color: Colors.textSecondary, fontSize: 24, marginRight: 8 },
+  searchInput: { flex: 1, color: Colors.text, fontSize: 15, paddingVertical: 0 },
   toolbar: {
     minHeight: 72,
     paddingHorizontal: 12,

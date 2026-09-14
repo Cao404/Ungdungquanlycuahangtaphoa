@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, Alert,
+  View, Text, FlatList, StyleSheet, Alert, Image,
   Modal, TouchableOpacity, ScrollView,
 } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import { router } from 'expo-router';
 import { useGioHang } from '../../hooks/useGioHang';
 import GioHangItemComp from '../../components/GioHangItem';
@@ -15,8 +16,45 @@ import Colors from '../../constants/colors';
 const HINH_THUC: { key: HinhThucTT; label: string }[] = [
   { key: 'tienmat',     label: '💵 Tiền mặt' },
   { key: 'chuyenkhoan', label: '📲 Chuyển khoản' },
-  { key: 'congno',      label: '📋 Công nợ' },
 ];
+
+// Để dùng ảnh QR của bạn, đổi `null` thành require('../../assets/ten-anh.png').
+let PAYMENT_QR_IMAGE: ImageSourcePropType | null = require('../../assets/QR.jpg');;
+
+const QR_SIZE = 21;
+
+function isFinderModule(row: number, column: number) {
+  const finderCorners = [[0, 0], [0, QR_SIZE - 7], [QR_SIZE - 7, 0]];
+
+  return finderCorners.some(([top, left]) => {
+    const localRow = row - top;
+    const localColumn = column - left;
+    const inside = localRow >= 0 && localRow < 7 && localColumn >= 0 && localColumn < 7;
+
+    if (!inside) return false;
+
+    const isOuterBorder = localRow === 0 || localRow === 6 || localColumn === 0 || localColumn === 6;
+    const isInnerSquare = localRow >= 2 && localRow <= 4 && localColumn >= 2 && localColumn <= 4;
+    return isOuterBorder || isInnerSquare;
+  });
+}
+
+function QrCodePreview() {
+  return (
+    <View style={styles.qrGrid}>
+      {Array.from({ length: QR_SIZE }, (_, row) => (
+        <View key={row} style={styles.qrRow}>
+          {Array.from({ length: QR_SIZE }, (_, column) => {
+            const isDark = isFinderModule(row, column)
+              || ((row * 3 + column * 5 + row * column) % 7 < 3);
+
+            return <View key={column} style={[styles.qrCell, isDark && styles.qrCellDark]} />;
+          })}
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export default function GioHangScreen() {
   const { items, capNhat, xoa, xoaHet, tongTien, soMon } = useGioHang();
@@ -93,20 +131,36 @@ export default function GioHangScreen() {
       <Modal visible={showModal} transparent animationType="slide">
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowModal(false)} />
         <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>Chọn hình thức thanh toán</Text>
-          {HINH_THUC.map((ht) => (
-            <TouchableOpacity
-              key={ht.key}
-              style={[styles.htItem, hinhThuc === ht.key && styles.htActive]}
-              onPress={() => setHinhThuc(ht.key)}
-            >
-              <Text style={styles.htLabel}>{ht.label}</Text>
-              {hinhThuc === ht.key && <Text style={styles.check}>✓</Text>}
-            </TouchableOpacity>
-          ))}
-          <Text style={styles.totalConfirm}>Tổng: {tongTien.toLocaleString('vi-VN')}đ</Text>
-          <Button title="Xác nhận thanh toán" onPress={thanhToan} loading={dangTT} />
-          <Button title="Huỷ" variant="outline" onPress={() => setShowModal(false)} />
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetContent}>
+            <Text style={styles.sheetTitle}>Chọn hình thức thanh toán</Text>
+            {HINH_THUC.map((ht) => (
+              <TouchableOpacity
+                key={ht.key}
+                style={[styles.htItem, hinhThuc === ht.key && styles.htActive]}
+                onPress={() => setHinhThuc(ht.key)}
+              >
+                <Text style={styles.htLabel}>{ht.label}</Text>
+                {hinhThuc === ht.key && <Text style={styles.check}>✓</Text>}
+              </TouchableOpacity>
+            ))}
+
+            {hinhThuc === 'chuyenkhoan' && (
+              <View style={styles.qrSection}>
+                {PAYMENT_QR_IMAGE ? (
+                  <Image source={PAYMENT_QR_IMAGE} style={styles.qrImage} resizeMode="contain" />
+                ) : (
+                  <QrCodePreview />
+                )}
+                <Text style={styles.qrMessage}>
+                  Quý khách vui lòng quét mã để thanh toán đơn hàng
+                </Text>
+              </View>
+            )}
+
+            <Text style={styles.totalConfirm}>Tổng: {tongTien.toLocaleString('vi-VN')}đ</Text>
+            <Button title="Xác nhận" onPress={thanhToan} loading={dangTT} />
+            <Button title="Huỷ" variant="outline" onPress={() => setShowModal(false)} />
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -135,8 +189,9 @@ const styles = StyleSheet.create({
   sheet: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: Colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: 24, gap: 12,
+    maxHeight: '92%',
   },
+  sheetContent: { padding: 24, gap: 12 },
   sheetTitle: { fontSize: 18, fontWeight: '800', color: Colors.text, marginBottom: 4 },
   htItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -145,5 +200,33 @@ const styles = StyleSheet.create({
   htActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
   htLabel: { fontSize: 15, fontWeight: '600', color: Colors.text },
   check:   { fontSize: 18, color: Colors.primary, fontWeight: '700' },
+  qrSection: { alignItems: 'center', paddingVertical: 6 },
+  qrImage: {
+    width: 184,
+    height: 184,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  qrGrid: {
+    width: 184,
+    height: 184,
+    padding: 9,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  qrRow: { flex: 1, flexDirection: 'row' },
+  qrCell: { flex: 1, backgroundColor: Colors.white },
+  qrCellDark: { backgroundColor: Colors.black },
+  qrMessage: {
+    maxWidth: 290,
+    color: Colors.text,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 12,
+  },
   totalConfirm: { fontSize: 16, fontWeight: '700', color: Colors.primary, textAlign: 'center' },
 });

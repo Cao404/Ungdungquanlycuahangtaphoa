@@ -1,4 +1,4 @@
-export type HinhThucTT = 'tienmat' | 'chuyenkhoan' | 'congno';
+export type HinhThucTT = 'tienmat' | 'chuyenkhoan';
 export type TrangThaiTT = 'daTT' | 'chuaTT';
 
 export interface ChiTietHoaDon {

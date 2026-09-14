@@ -11,7 +11,6 @@ import Colors from '../../constants/colors';
 const labelTT: Record<string, string> = {
   tienmat: '💵 Tiền mặt',
   chuyenkhoan: '📲 CK',
-  congno: '📋 Công nợ',
 };
 
 export default function LichSuScreen() {

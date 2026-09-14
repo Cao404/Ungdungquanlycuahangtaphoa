@@ -52,7 +52,7 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
     price: 38000,
     category: 'Đồ uống',
     fallbackIcon: '🥛',
-    image: null,
+    image: require('../assets/suavinamilk.jpg'),
   },
   {
     id: 'nuoc-mam-nam-ngu',
@@ -60,7 +60,7 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
     price: 35000,
     category: 'Gia dụng',
     fallbackIcon: '🍶',
-    image: null,
+    image: require('../assets/nuocmamnamngu.png'),
   },
   {
     id: 'dau-an-simply',
@@ -68,7 +68,7 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
     price: 58000,
     category: 'Gia dụng',
     fallbackIcon: '🫗',
-    image: null,
+    image: require('../assets/dauan.jpg'),
   },
   {
     id: 'banh-oreo',
@@ -76,7 +76,7 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
     price: 18000,
     category: 'Thực phẩm',
     fallbackIcon: '🍪',
-    image: null,
+    image: require('../assets/banhoreo.jpg'),
   },
   {
     id: 'giay-ve-sinh',
@@ -84,7 +84,7 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
     price: 65000,
     category: 'Gia dụng',
     fallbackIcon: '🧻',
-    image: null,
+    image: require('../assets/giayvesinh.jpg'),
   },
   {
     id: 'kem-danh-rang',
@@ -92,6 +92,6 @@ export const CATALOG_PRODUCTS: CatalogProduct[] = [
     price: 32000,
     category: 'Gia dụng',
     fallbackIcon: '🪥',
-    image: null,
+    image: require('../assets/kemdanhrang.jpg'),
   },
 ];

@@ -1,7 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Colors from '../constants/colors';
-import { APP_NAME } from '../constants/config';
 
 type ContactKind = 'messenger' | 'zalo' | 'phone';
 
@@ -40,7 +39,7 @@ export default function ContactScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.logo}>🏪</Text>
-        <Text style={styles.title}>{APP_NAME}</Text>
+        <Text style={styles.title}>Tạp hóa Dương Cao</Text>
         <Text style={styles.sub}>Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn.</Text>
       </View>
 

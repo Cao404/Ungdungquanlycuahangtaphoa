@@ -12,7 +12,7 @@ export default function LoginScreen() {
   const [taiKhoan, setTaiKhoan] = useState('');
   const [matKhau, setMatKhau] = useState('');
 
-  // Chế độ xem thử giao diện: tạm thời bỏ qua xác thực backend.
+  // chế độ xem thử giao diện: bỏ qua xác thực backend.
   const handleLogin = () => router.replace('/(tabs)');
 
   return (

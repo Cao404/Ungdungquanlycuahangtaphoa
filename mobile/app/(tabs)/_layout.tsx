@@ -1,11 +1,36 @@
 import React, { useEffect } from 'react';
 import { router, Tabs, usePathname } from 'expo-router';
-import { Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { ColorValue } from 'react-native';
 import Colors from '../../constants/colors';
 
-function TabIcon({ icon, color }: { icon: string; color: ColorValue }) {
-  return <Text style={{ color, fontSize: 20 }}>{icon}</Text>;
+type TabIconName = 'home' | 'inbox' | 'contact' | 'profile';
+
+function TabIcon({ name, color }: { name: TabIconName; color: ColorValue }) {
+  if (name === 'inbox') {
+    return (
+      <View style={styles.tabIconBox}>
+        <View style={[styles.messageIcon, { borderColor: color }]}>
+          <View style={[styles.messageTail, { borderColor: color }]} />
+        </View>
+      </View>
+    );
+  }
+
+  if (name === 'profile') {
+    return (
+      <View style={styles.profileIcon}>
+        <View style={[styles.profileHead, { borderColor: color }]} />
+        <View style={[styles.profileBody, { borderColor: color }]} />
+      </View>
+    );
+  }
+
+  return (
+    <Text style={[styles.textIcon, { color }]}>
+      {name === 'home' ? '⌂' : '✆'}
+    </Text>
+  );
 }
 
 export default function TabsLayout() {
@@ -45,32 +70,36 @@ export default function TabsLayout() {
         options={{
           title: 'Trang chủ',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabIcon icon="⌂" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="sanpham"
+        name="hopthu"
         options={{
-          title: 'Sản phẩm',
+          title: 'Hộp thư',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabIcon icon="▦" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="khuyenmai"
-        options={{
-          title: 'Khuyến mãi',
-          tabBarIcon: ({ color }) => <TabIcon icon="%" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="inbox" color={color} />,
         }}
       />
       <Tabs.Screen
         name="contact"
         options={{
           title: 'Liên hệ',
-          tabBarIcon: ({ color }) => <TabIcon icon="☎" color={color} />,
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabIcon name="contact" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="canhan"
+        options={{
+          title: 'Cá nhân',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabIcon name="profile" color={color} />,
         }}
       />
       <Tabs.Screen name="index" options={{ href: null }} />
+      <Tabs.Screen name="sanpham" options={{ href: null, headerShown: false }} />
+      <Tabs.Screen name="khuyenmai" options={{ href: null }} />
       <Tabs.Screen name="banhang/index" options={{ href: null }} />
       <Tabs.Screen name="banhang/chon-bien-the" options={{ href: null }} />
       <Tabs.Screen name="catalog" options={{ href: null }} />
@@ -80,3 +109,35 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconBox: { width: 28, height: 27, alignItems: 'center', justifyContent: 'center' },
+  textIcon: { fontSize: 24, lineHeight: 26 },
+  messageIcon: {
+    width: 23,
+    height: 17,
+    borderWidth: 2,
+    borderRadius: 4,
+  },
+  messageTail: {
+    position: 'absolute',
+    left: 4,
+    bottom: -5,
+    width: 8,
+    height: 8,
+    backgroundColor: Colors.surface,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    transform: [{ rotate: '-45deg' }],
+  },
+  profileIcon: { width: 28, height: 27, alignItems: 'center', justifyContent: 'center' },
+  profileHead: { width: 10, height: 10, borderWidth: 2, borderRadius: 5, marginBottom: 2 },
+  profileBody: {
+    width: 24,
+    height: 11,
+    borderWidth: 2,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+});
