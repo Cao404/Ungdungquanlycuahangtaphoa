@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import {
   View, Text, FlatList, StyleSheet, Alert,
-  Modal, TouchableOpacity, ScrollView,
+  Modal, TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useGioHang } from '../../hooks/useGioHang';
 import GioHangItemComp from '../../components/GioHangItem';
 import Button from '../../components/ui/Button';
-import { hoaDonService } from '../../services/hoadon.service';
-import { useAuthStore } from '../../store/authStore';
 import { HinhThucTT } from '../../types/HoaDon';
 import Colors from '../../constants/colors';
 
@@ -19,35 +17,20 @@ const HINH_THUC: { key: HinhThucTT; label: string }[] = [
 ];
 
 export default function GioHangScreen() {
-  const { items, capNhat, xoa, xoaHet, tongTien, soMon } = useGioHang();
-  const nguoiDung = useAuthStore((s) => s.nguoiDung);
-  const [dangTT, setDangTT] = useState(false);
+  const { items, capNhat, xoa, xoaHet, tongTien, soMon, thanhToan, dangThanhToan } = useGioHang();
   const [showModal, setShowModal] = useState(false);
   const [hinhThuc, setHinhThuc] = useState<HinhThucTT>('tienmat');
 
-  const thanhToan = async () => {
-    if (!nguoiDung) return;
-    setDangTT(true);
+  const handleThanhToan = async () => {
     try {
-      await hoaDonService.create({
-        hinhThucTT: hinhThuc,
-        chiTiet: items.map((i) => ({
-          bienTheId: i.bienTheId,
-          soLuong:   i.soLuong,
-          donGia:    i.donGia,
-          thanhTien: i.thanhTien,
-        })),
-      });
-      xoaHet();
+      await thanhToan(hinhThuc);
       setShowModal(false);
-      Alert.alert('✅ Thành công', 'Hoá đơn đã được tạo!', [
+      Alert.alert('Thành công', 'Hoá đơn đã được tạo!', [
         { text: 'Xem lịch sử', onPress: () => router.replace('/(tabs)/lichsu') },
         { text: 'OK' },
       ]);
     } catch (e: any) {
-      Alert.alert('❌ Lỗi', e?.response?.data?.message ?? e.message);
-    } finally {
-      setDangTT(false);
+      Alert.alert('Lỗi', e?.response?.data?.message ?? e.message);
     }
   };
 
@@ -77,7 +60,6 @@ export default function GioHangScreen() {
         contentContainerStyle={styles.list}
       />
 
-      {/* Footer tổng tiền + nút thanh toán */}
       <View style={styles.footer}>
         <View style={styles.tongRow}>
           <Text style={styles.tongLabel}>{soMon} món</Text>
@@ -89,7 +71,6 @@ export default function GioHangScreen() {
         </View>
       </View>
 
-      {/* Modal chọn hình thức thanh toán */}
       <Modal visible={showModal} transparent animationType="slide">
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowModal(false)} />
         <View style={styles.sheet}>
@@ -105,7 +86,7 @@ export default function GioHangScreen() {
             </TouchableOpacity>
           ))}
           <Text style={styles.totalConfirm}>Tổng: {tongTien.toLocaleString('vi-VN')}đ</Text>
-          <Button title="Xác nhận thanh toán" onPress={thanhToan} loading={dangTT} />
+          <Button title="Xác nhận thanh toán" onPress={handleThanhToan} loading={dangThanhToan} />
           <Button title="Huỷ" variant="outline" onPress={() => setShowModal(false)} />
         </View>
       </Modal>

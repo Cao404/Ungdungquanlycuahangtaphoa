@@ -23,6 +23,10 @@ export default function TabsLayout() {
         options={{ title: 'Bán hàng', tabBarIcon: () => null }}
       />
       <Tabs.Screen
+        name="banhang/chon-bien-the"
+        options={{ href: null, title: 'Chọn biến thể' }}
+      />
+      <Tabs.Screen
         name="giohang"
         options={{
           title: 'Giỏ hàng',
@@ -33,6 +37,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="lichsu"
         options={{ title: 'Lịch sử', tabBarIcon: () => null }}
+      />
+      <Tabs.Screen
+        name="taikhoan"
+        options={{ title: 'Tài khoản', tabBarIcon: () => null }}
       />
     </Tabs>
   );
