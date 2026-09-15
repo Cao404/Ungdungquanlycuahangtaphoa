@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { VaiTro } from '@prisma/client';
+import { VaiTro } from '../types/auth.types';
 import { forbidden } from '../utils/response';
 
 // Kiểm tra vai trò sau khi đã authenticate

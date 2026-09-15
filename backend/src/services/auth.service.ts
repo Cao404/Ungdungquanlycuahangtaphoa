@@ -18,7 +18,7 @@ export async function dangNhap(taiKhoan: string, matKhau: string) {
   const token = jwt.sign(
     { id: nguoiDung.id, vaiTro: nguoiDung.vaiTro },
     process.env.JWT_SECRET!,
-    { expiresIn: process.env.JWT_EXPIRES_IN ?? '7d' }
+    { expiresIn: (process.env.JWT_EXPIRES_IN ?? '7d') as any }
   );
 
   const { matKhau: _, ...info } = nguoiDung;

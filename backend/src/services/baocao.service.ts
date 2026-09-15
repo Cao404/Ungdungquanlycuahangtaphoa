@@ -37,7 +37,7 @@ export async function banChay(tu: string, den: string) {
       return {
         bienTheId: item.bienTheId,
         tenSanPham: bt?.sanPham.ten,
-        tenBienThe: bt?.tenBienThe,
+        tenBienThe: bt ? `${bt.giaTri} ${bt.donVi}` : undefined,
         tongSoLuong: item._sum.soLuong,
         tongDoanhThu: item._sum.thanhTien,
       };

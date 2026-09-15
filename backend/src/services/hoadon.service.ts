@@ -22,21 +22,32 @@ export const taoHoaDonSchema = z.object({
  * 2. Trừ tồn kho
  * 3. Tạo HoaDon + ChiTietHoaDon
  */
-export async function taoHoaDon(nguoiBanId: string, body: TaoHoaDonBody) {
+export async function taoHoaDon(nguoiBanId: string | number, body: TaoHoaDonBody) {
   return prisma.$transaction(async (tx) => {
-    // Bước 1: Kiểm tra tồn kho
+    // Bước 1: Kiểm tra tồn kho và lưu snapshot số lượng trước/sau
+    const snapshot: { btId: number; soLuong: number; donGia: number; soLuongTruoc: number; soLuongSau: number }[] = [];
     for (const dong of body.chiTiet) {
-      const bt = await tx.bienThe.findUnique({ where: { id: dong.bienTheId } });
-      if (!bt) throw new Error(`Biến thể ${dong.bienTheId} không tồn tại`);
-      if (bt.soLuongTon < dong.soLuong)
-        throw new Error(`"${bt.tenBienThe}" chỉ còn ${bt.soLuongTon}, không đủ ${dong.soLuong}`);
+      const btId = Number(dong.bienTheId);
+      const bt = await tx.bienThe.findUnique({ where: { id: btId } });
+      if (!bt) throw new Error(`Biến thể #${dong.bienTheId} không tồn tại`);
+      if (bt.soLuongTon < dong.soLuong) {
+        const tenBT = `${bt.giaTri} ${bt.donVi}`;
+        throw new Error(`"${tenBT}" chỉ còn ${bt.soLuongTon}, không đủ ${dong.soLuong}`);
+      }
+      snapshot.push({
+        btId,
+        soLuong: dong.soLuong,
+        donGia: dong.donGia,
+        soLuongTruoc: bt.soLuongTon,
+        soLuongSau: bt.soLuongTon - dong.soLuong,
+      });
     }
 
     // Bước 2: Trừ tồn kho
-    for (const dong of body.chiTiet) {
+    for (const item of snapshot) {
       await tx.bienThe.update({
-        where: { id: dong.bienTheId },
-        data: { soLuongTon: { decrement: dong.soLuong } },
+        where: { id: item.btId },
+        data: { soLuongTon: item.soLuongSau },
       });
     }
 
@@ -45,15 +56,15 @@ export async function taoHoaDon(nguoiBanId: string, body: TaoHoaDonBody) {
     // Bước 3: Tạo HoaDon và ChiTietHoaDon
     const hoaDon = await tx.hoaDon.create({
       data: {
-        nguoiBanId,
-        khachHangId: body.khachHangId,
+        nguoiBanId: Number(nguoiBanId),
+        khachHangId: body.khachHangId ? Number(body.khachHangId) : null,
         giamGia: body.giamGia ?? 0,
         hinhThucTT: body.hinhThucTT ?? 'tienmat',
         trangThaiTT: body.trangThaiTT ?? 'daTT',
         tongTien,
         chiTiets: {
           create: body.chiTiet.map((d) => ({
-            bienTheId: d.bienTheId,
+            bienTheId: Number(d.bienTheId),
             soLuong: d.soLuong,
             donGia: d.donGia,          // lưu cứng giá tại thời điểm bán
             thanhTien: d.soLuong * d.donGia,
@@ -62,6 +73,23 @@ export async function taoHoaDon(nguoiBanId: string, body: TaoHoaDonBody) {
       },
       include: { chiTiets: true },
     });
+
+    // Bước 4: Tạo bản ghi GiaoDichKho (loaiGiaoDich='ban_hang', soLuongThayDoi=-soLuong)
+    for (const item of snapshot) {
+      await tx.giaoDichKho.create({
+        data: {
+          bienTheId: item.btId,
+          loaiGiaoDich: 'ban_hang',
+          soLuongThayDoi: -item.soLuong,
+          soLuongTruoc: item.soLuongTruoc,
+          soLuongSau: item.soLuongSau,
+          thamChieuLoai: 'HoaDon',
+          thamChieuId: hoaDon.id,
+          nguoiThucHienId: Number(nguoiBanId),
+          ghiChu: `Bán hàng qua hoá đơn #${hoaDon.id}`,
+        },
+      });
+    }
 
     return hoaDon;
   });
@@ -74,9 +102,9 @@ export async function layDanhSachHoaDon() {
   });
 }
 
-export async function layHoaDonTheoId(id: string) {
+export async function layHoaDonTheoId(id: string | number) {
   return prisma.hoaDon.findUnique({
-    where: { id },
+    where: { id: Number(id) },
     include: {
       nguoiBan: { select: { hoTen: true } },
       khachHang: true,

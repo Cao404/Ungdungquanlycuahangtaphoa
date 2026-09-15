@@ -24,6 +24,8 @@ model NguoiDung {
 
   phieuNhaps PhieuNhap[]
   hoaDons    HoaDon[]
+  phieuKiemKes PhieuKiemKe[]
+  giaoDichKhos GiaoDichKho[]
 
   @@map("NguoiDung")
 }
@@ -61,6 +63,8 @@ model BienThe {
   sanPham           SanPham            @relation(fields: [sanPhamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_BienThe_SanPham")
   chiTietPhieuNhaps ChiTietPhieuNhap[]
   chiTietHoaDons    ChiTietHoaDon[]
+  chiTietKiemKes    ChiTietKiemKe[]
+  giaoDichKhos      GiaoDichKho[]
 
   @@index([sanPhamId], map: "IX_BienThe_SanPhamId")
   @@index([giaTri], map: "IX_BienThe_GiaTri")
@@ -158,3 +162,54 @@ model ChiTietHoaDon {
 
   @@map("ChiTietHoaDon")
 }
+
+// ─── 10. GiaoDichKho ─────────────────────────────────────────
+model GiaoDichKho {
+  id              Int      @id @default(autoincrement())
+  bienTheId       Int
+  loaiGiaoDich    String   @db.NVarChar(50) // 'nhap_hang' | 'ban_hang' | 'kiem_ke' | 'tra_hang'
+  soLuongThayDoi  Int
+  soLuongTruoc    Int
+  soLuongSau      Int
+  thamChieuLoai   String?  @db.NVarChar(50) // 'PhieuNhap' | 'HoaDon' | 'PhieuKiemKe'
+  thamChieuId     Int?
+  nguoiThucHienId Int
+  thoiGian        DateTime @default(now()) @db.DateTime
+  ghiChu          String?  @db.NVarChar(500)
+
+  bienThe       BienThe   @relation(fields: [bienTheId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_GiaoDichKho_BienThe")
+  nguoiThucHien NguoiDung @relation(fields: [nguoiThucHienId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_GiaoDichKho_NguoiDung")
+
+  @@index([bienTheId], map: "IX_GiaoDichKho_BienTheId")
+  @@index([thoiGian(sort: Desc)], map: "IX_GiaoDichKho_ThoiGian")
+  @@map("GiaoDichKho")
+}
+
+// ─── 11. PhieuKiemKe ─────────────────────────────────────────
+model PhieuKiemKe {
+  id         Int      @id @default(autoincrement())
+  nguoiTaoId Int
+  ngayKiemKe DateTime @default(now()) @db.DateTime
+  ghiChu     String?  @db.NVarChar(Max)
+
+  nguoiTao NguoiDung        @relation(fields: [nguoiTaoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PhieuKiemKe_NguoiDung")
+  chiTiets ChiTietKiemKe[]
+
+  @@index([ngayKiemKe(sort: Desc)], map: "IX_PhieuKiemKe_NgayKiemKe")
+  @@map("PhieuKiemKe")
+}
+
+// ─── 12. ChiTietKiemKe ───────────────────────────────────────
+model ChiTietKiemKe {
+  id             Int @id @default(autoincrement())
+  phieuKiemKeId  Int
+  bienTheId      Int
+  soLuongHeThong Int
+  soLuongThucTe  Int
+
+  phieuKiemKe PhieuKiemKe @relation(fields: [phieuKiemKeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietKiemKe_PhieuKiemKe")
+  bienThe     BienThe     @relation(fields: [bienTheId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietKiemKe_BienThe")
+
+  @@map("ChiTietKiemKe")
+}
+

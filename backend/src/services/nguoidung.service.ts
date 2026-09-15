@@ -11,7 +11,7 @@ export const taoNguoiDungSchema = z.object({
 
 export async function layDanhSach() {
   return prisma.nguoiDung.findMany({
-    select: { id: true, hoTen: true, taiKhoan: true, vaiTro: true, trangThai: true, taoLuc: true },
+    select: { id: true, hoTen: true, taiKhoan: true, vaiTro: true, trangThai: true, createdAt: true },
   });
 }
 
@@ -24,9 +24,9 @@ export async function taoNguoiDung(data: z.infer<typeof taoNguoiDungSchema>) {
 }
 
 export async function capNhatNguoiDung(id: string, data: Partial<{ hoTen: string; trangThai: boolean; vaiTro: 'admin' | 'nhanvien' }>) {
-  return prisma.nguoiDung.update({ where: { id }, data });
+  return prisma.nguoiDung.update({ where: { id: Number(id) }, data });
 }
 
 export async function xoaNguoiDung(id: string) {
-  return prisma.nguoiDung.delete({ where: { id } });
+  return prisma.nguoiDung.delete({ where: { id: Number(id) } });
 }

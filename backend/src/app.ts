@@ -11,6 +11,7 @@ import hoaDonRoutes    from './routes/hoadon.routes';
 import phieuNhapRoutes from './routes/phieunhap.routes';
 import baoCaoRoutes    from './routes/baocao.routes';
 import nguoiDungRoutes from './routes/nguoidung.routes';
+import kiemKeRoutes    from './routes/kiemke.routes';
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/hoadon',      hoaDonRoutes);
 app.use('/api/phieunhap',   phieuNhapRoutes);
 app.use('/api/baocao',      baoCaoRoutes);
 app.use('/api/nguoidung',   nguoiDungRoutes);
+app.use('/api/kiemke',      kiemKeRoutes);
 
 // 404 handler
 app.use((_req, res) => res.status(404).json({ success: false, message: 'Route không tồn tại' }));
