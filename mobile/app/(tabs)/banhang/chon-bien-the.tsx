@@ -1,45 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  ActivityIndicator, TextInput, Alert,
+  ActivityIndicator, TextInput,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useFetch } from '../../../hooks/useFetch';
-import { useGioHang } from '../../../hooks/useGioHang';
 import BienTheOption from '../../../components/BienTheOption';
 import Button from '../../../components/ui/Button';
-import { sanPhamService } from '../../../services/sanpham.service';
-import { BienThe } from '../../../types/SanPham';
+import { useChonBienThe } from '../../../hooks/useChonBienThe';
 import Colors from '../../../constants/colors';
 
 export default function ChonBienTheScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: sanPham, loading } = useFetch(() => sanPhamService.getById(id!), [id]);
-  const { themSanPham } = useGioHang();
-
-  const [bienTheChon, setBienTheChon] = useState<BienThe | null>(null);
-  const [soLuong, setSoLuong] = useState('1');
-
-  const handleThem = () => {
-    if (!sanPham || !bienTheChon) return;
-    const sl = parseInt(soLuong, 10);
-    if (isNaN(sl) || sl <= 0) { Alert.alert('Lỗi', 'Số lượng không hợp lệ'); return; }
-    if (sl > bienTheChon.soLuongTon) {
-      Alert.alert('Không đủ hàng', `Chỉ còn ${bienTheChon.soLuongTon} trong kho`);
-      return;
-    }
-    const ok = themSanPham(sanPham, bienTheChon, sl);
-    if (ok) { Alert.alert('✅ Đã thêm', `${sanPham.ten} - ${bienTheChon.tenBienThe}`); router.back(); }
-  };
+  const {
+    sanPham,
+    loading,
+    error,
+    bienTheChon,
+    setBienTheChon,
+    soLuong,
+    setSoLuong,
+    tamTinh,
+    themVaoGio,
+  } = useChonBienThe(id);
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} color={Colors.primary} size="large" />;
+  if (error) return <Text style={styles.errorTxt}>{error}</Text>;
   if (!sanPham) return null;
 
   return (
     <View style={styles.container}>
       <Text style={styles.ten}>{sanPham.ten}</Text>
 
-      {/* Chọn biến thể */}
       <Text style={styles.label}>Chọn loại:</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bienTheRow}>
         {sanPham.bienThes.map((bt) => (
@@ -69,10 +60,10 @@ export default function ChonBienTheScreen() {
       <View style={styles.footer}>
         {bienTheChon && (
           <Text style={styles.tamTinh}>
-            Tạm tính: {(bienTheChon.giaBan * (parseInt(soLuong) || 0)).toLocaleString('vi-VN')}đ
+            Tạm tính: {tamTinh.toLocaleString('vi-VN')}đ
           </Text>
         )}
-        <Button title="Thêm vào giỏ" onPress={handleThem} disabled={!bienTheChon} />
+        <Button title="Thêm vào giỏ" onPress={themVaoGio} disabled={!bienTheChon} />
         <Button title="Quay lại" variant="outline" onPress={() => router.back()} />
       </View>
     </View>
@@ -92,4 +83,5 @@ const styles = StyleSheet.create({
   },
   tamTinh: { fontSize: 16, fontWeight: '700', color: Colors.primary, textAlign: 'center' },
   footer: { marginTop: 'auto', gap: 10 },
+  errorTxt: { textAlign: 'center', color: Colors.danger, marginTop: 40 },
 });

@@ -1,41 +1,26 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import {
   View, FlatList, TextInput, StyleSheet,
   ActivityIndicator, Text, ScrollView, TouchableOpacity,
 } from 'react-native';
-import { router } from 'expo-router';
-import { useFetch } from '../../../hooks/useFetch';
-import { useGioHang } from '../../../hooks/useGioHang';
 import SanPhamCard from '../../../components/SanPhamCard';
-import { sanPhamService } from '../../../services/sanpham.service';
-import { SanPham } from '../../../types/SanPham';
+import { DANH_MUC, useSanPhamSearch } from '../../../hooks/useSanPhamSearch';
 import Colors from '../../../constants/colors';
 
-const DANH_MUC = ['Tất cả', 'Thực phẩm', 'Đồ uống', 'Gia vị', 'Chăm sóc', 'Khác'];
-
 export default function BanHangScreen() {
-  const [query, setQuery] = useState('');
-  const [danhMuc, setDanhMuc] = useState('');
-  const { soMon } = useGioHang();
-
-  // Tự fetch lại khi query hoặc danhMuc thay đổi
-  const { data, loading, error, refetch } = useFetch(
-    () => sanPhamService.search(query, danhMuc === 'Tất cả' ? '' : danhMuc),
-    [query, danhMuc]
-  );
-
-  const handleChonSanPham = useCallback((sp: SanPham) => {
-    // Nếu chỉ có 1 biến thể → thêm thẳng, không mở modal
-    if (sp.bienThes.length === 1 && sp.bienThes[0].soLuongTon > 0) {
-      router.push({ pathname: '/(tabs)/banhang/chon-bien-the', params: { id: sp.id } });
-    } else {
-      router.push({ pathname: '/(tabs)/banhang/chon-bien-the', params: { id: sp.id } });
-    }
-  }, []);
+  const {
+    query,
+    setQuery,
+    danhMuc,
+    chonDanhMuc,
+    sanPhams,
+    loading,
+    error,
+    chonSanPham,
+  } = useSanPhamSearch();
 
   return (
     <View style={styles.container}>
-      {/* Thanh tìm kiếm */}
       <TextInput
         style={styles.search}
         placeholder="🔍  Tìm tên sản phẩm..."
@@ -45,27 +30,25 @@ export default function BanHangScreen() {
         clearButtonMode="while-editing"
       />
 
-      {/* Bộ lọc danh mục */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.danhMucBar} contentContainerStyle={styles.danhMucContent}>
         {DANH_MUC.map((dm) => (
           <TouchableOpacity
             key={dm}
             style={[styles.chip, danhMuc === dm && styles.chipActive]}
-            onPress={() => setDanhMuc(dm === 'Tất cả' ? '' : dm)}
+            onPress={() => chonDanhMuc(dm)}
           >
             <Text style={[styles.chipTxt, danhMuc === dm && styles.chipTxtActive]}>{dm}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Danh sách sản phẩm */}
       {loading && <ActivityIndicator style={styles.center} color={Colors.primary} size="large" />}
       {error && <Text style={styles.errorTxt}>{error}</Text>}
       {!loading && !error && (
         <FlatList
-          data={data ?? []}
+          data={sanPhams}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <SanPhamCard sanPham={item} onPress={handleChonSanPham} />}
+          renderItem={({ item }) => <SanPhamCard sanPham={item} onPress={chonSanPham} />}
           ListEmptyComponent={<Text style={styles.empty}>Không tìm thấy sản phẩm nào</Text>}
           contentContainerStyle={{ paddingVertical: 6 }}
         />
