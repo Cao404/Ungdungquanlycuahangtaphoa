@@ -32,7 +32,13 @@ export default function Button({
   ];
 
   return (
-    <TouchableOpacity style={btnStyles} disabled={loading || props.disabled} activeOpacity={0.75} {...props}>
+    <TouchableOpacity
+      style={btnStyles}
+      disabled={loading || props.disabled}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      {...props}
+    >
       {loading
         ? <ActivityIndicator color={variant === 'primary' ? Colors.white : Colors.primary} size="small" />
         : <Text style={textStyles}>{title}</Text>

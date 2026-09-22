@@ -1,8 +1,8 @@
-import { VaiTro } from '@prisma/client';
+export type VaiTro = 'admin' | 'nhanvien';
 
 // Payload được lưu trong JWT
 export interface JwtPayload {
-  id: string;
+  id: number;
   vaiTro: VaiTro;
 }
 

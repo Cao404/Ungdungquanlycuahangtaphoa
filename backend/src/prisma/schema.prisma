@@ -24,6 +24,8 @@ model NguoiDung {
 
   phieuNhaps PhieuNhap[]
   hoaDons    HoaDon[]
+  phieuKiemKesTao PhieuKiemKe[] @relation("KiemKeNguoiTao")
+  phieuKiemKesDuyet PhieuKiemKe[] @relation("KiemKeNguoiDuyet")
 
   @@map("NguoiDung")
 }
@@ -61,6 +63,7 @@ model BienThe {
   sanPham           SanPham            @relation(fields: [sanPhamId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_BienThe_SanPham")
   chiTietPhieuNhaps ChiTietPhieuNhap[]
   chiTietHoaDons    ChiTietHoaDon[]
+  chiTietKiemKes    ChiTietKiemKe[]
 
   @@index([sanPhamId], map: "IX_BienThe_SanPhamId")
   @@index([giaTri], map: "IX_BienThe_GiaTri")
@@ -157,4 +160,38 @@ model ChiTietHoaDon {
   bienThe BienThe @relation(fields: [bienTheId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietHoaDon_BienThe")
 
   @@map("ChiTietHoaDon")
+}
+
+// Phiếu kiểm kê chỉ thay đổi tồn kho sau khi quản trị viên duyệt.
+model PhieuKiemKe {
+  id             Int      @id @default(autoincrement())
+  nguoiTaoId     Int
+  nguoiDuyetId   Int?
+  ngayTao        DateTime @default(now()) @db.DateTime
+  ngayDuyet      DateTime? @db.DateTime
+  ghiChu         String?  @db.NVarChar(500)
+  lyDoTuChoi     String?  @db.NVarChar(500)
+  trangThai      String   @default("choDuyet") @db.NVarChar(20)
+
+  nguoiTao       NguoiDung @relation("KiemKeNguoiTao", fields: [nguoiTaoId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PhieuKiemKe_NguoiTao")
+  nguoiDuyet     NguoiDung? @relation("KiemKeNguoiDuyet", fields: [nguoiDuyetId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_PhieuKiemKe_NguoiDuyet")
+  chiTiet        ChiTietKiemKe[]
+
+  @@index([nguoiTaoId, ngayTao(sort: Desc)], map: "IX_PhieuKiemKe_NguoiTao_NgayTao")
+  @@map("PhieuKiemKe")
+}
+
+model ChiTietKiemKe {
+  id               Int @id @default(autoincrement())
+  phieuKiemKeId    Int
+  bienTheId        Int
+  soLuongHeThong   Int
+  soLuongThucTe    Int
+  chenhLech        Int
+
+  phieuKiemKe PhieuKiemKe @relation(fields: [phieuKiemKeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietKiemKe_PhieuKiemKe")
+  bienThe      BienThe     @relation(fields: [bienTheId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ChiTietKiemKe_BienThe")
+
+  @@unique([phieuKiemKeId, bienTheId], map: "UQ_ChiTietKiemKe_Phieu_BienThe")
+  @@map("ChiTietKiemKe")
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getApiErrorMessage } from '../services/api';
 
-// Hook generic: fetch data + trạng thái loading/error + hàm refetch
 export function useFetch<T>(fetcher: () => Promise<T>, deps: unknown[] = []) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
@@ -12,15 +12,16 @@ export function useFetch<T>(fetcher: () => Promise<T>, deps: unknown[] = []) {
     try {
       const result = await fetcher();
       setData(result);
-    } catch (e: any) {
-      setError(e?.response?.data?.message ?? e.message ?? 'Lỗi tải dữ liệu');
+    } catch (fetchError: unknown) {
+      setError(getApiErrorMessage(fetchError, 'Lỗi tải dữ liệu'));
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
 
   return { data, loading, error, refetch: fetch };
 }

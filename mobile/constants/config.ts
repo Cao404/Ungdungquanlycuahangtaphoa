@@ -1,15 +1,13 @@
 import Constants from 'expo-constants';
 
 /**
- * API_BASE_URL đọc từ app.json > extra > API_BASE_URL
+ * API_BASE_URL được app.config.js đọc từ EXPO_PUBLIC_API_BASE_URL trong file .env.
  *
- * Khi test trên điện thoại thật (không phải emulator):
- *   - KHÔNG dùng localhost hoặc 127.0.0.1
- *   - Dùng IP LAN của máy tính chạy backend, VD: http://192.168.1.100:8080/api
- *   - Kiểm tra IP: Windows dùng ipconfig, Mac/Linux dùng ifconfig
- *   - Cập nhật trong app.json > extra > API_BASE_URL rồi restart expo
+ * Điện thoại thật không truy cập được localhost của máy tính. Hãy dùng IP LAN,
+ * ví dụ http://192.168.1.100:8080/api, rồi khởi động lại Expo.
  */
-export const API_BASE_URL: string =
-  (Constants.expoConfig?.extra?.API_BASE_URL as string | undefined) ?? '';
+const configuredUrl = Constants.expoConfig?.extra?.API_BASE_URL as string | undefined;
+
+export const API_BASE_URL = (configuredUrl ?? '').replace(/\/$/, '');
 
 export const APP_NAME = 'Quản Lý Tạp Hóa';

@@ -1,13 +1,13 @@
-import { HinhThucTT, TrangThaiTT } from '@prisma/client';
+export type HinhThucTT = 'tienmat' | 'chuyenkhoan' | 'congno';
+export type TrangThaiTT = 'daTT' | 'chuaTT';
 
 // Body tạo hoá đơn
 export interface TaoHoaDonBody {
-  khachHangId?: string;
+  khachHangId?: number | null;
   giamGia?: number;
   hinhThucTT?: HinhThucTT;
-  trangThaiTT?: TrangThaiTT;
   chiTiet: {
-    bienTheId: string;
+    bienTheId: number;
     soLuong: number;
     donGia: number;
   }[];
@@ -15,10 +15,10 @@ export interface TaoHoaDonBody {
 
 // Body tạo phiếu nhập
 export interface TaoPhieuNhapBody {
-  nhaCungCapId: string;
+  nhaCungCapId: number;
   ghiChu?: string;
   chiTiet: {
-    bienTheId: string;
+    bienTheId: number;
     soLuong: number;
     giaNhap: number;
   }[];

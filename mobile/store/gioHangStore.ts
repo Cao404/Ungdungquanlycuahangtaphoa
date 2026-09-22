@@ -1,61 +1,79 @@
 import { create } from 'zustand';
 import { BienThe, SanPham } from '../types/SanPham';
 import { ChiTietHoaDon } from '../types/HoaDon';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
-// Mỗi item trong giỏ = chi tiết hoá đơn + info hiển thị
 export interface GioHangItem extends ChiTietHoaDon {
   tenSanPham: string;
   tenBienThe: string;
+  soLuongTon: number;
 }
 
 interface GioHangState {
+  nguoiDungId: number | null;
   items: GioHangItem[];
-
-  // Thêm vào giỏ (nếu đã có cùng bienTheId thì cộng dồn số lượng)
-  them: (sanPham: SanPham, bienThe: BienThe, soLuong: number) => void;
-
-  // Cập nhật số lượng; soLuong <= 0 thì tự xoá
-  capNhat: (bienTheId: string, soLuong: number) => void;
-
-  xoa: (bienTheId: string) => void;
+  ganNguoiDung: (id: number) => void;
+  them: (sanPham: SanPham, bienThe: BienThe, soLuong: number) => boolean;
+  capNhat: (bienTheId: number, soLuong: number) => boolean;
+  xoa: (bienTheId: number) => void;
   xoaHet: () => void;
-
   tongTien: () => number;
   soMon: () => number;
 }
 
-export const useGioHangStore = create<GioHangState>((set, get) => ({
+export const useGioHangStore = create<GioHangState>()(persist((set, get) => ({
+  nguoiDungId: null,
   items: [],
 
+  // Giữ giỏ của cùng tài khoản; không để nhân viên khác dùng chung giỏ.
+  ganNguoiDung: (id) => set((state) => state.nguoiDungId === id
+    ? state
+    : { nguoiDungId: id, items: [] }),
+
+  // Cộng dồn cùng biến thể nhưng không cho vượt tồn kho.
   them: (sanPham, bienThe, soLuong) => {
-    set((state) => {
-      const exists = state.items.find((i) => i.bienTheId === bienThe.id);
-      if (exists) {
-        return {
-          items: state.items.map((i) =>
-            i.bienTheId === bienThe.id
-              ? { ...i, soLuong: i.soLuong + soLuong, thanhTien: (i.soLuong + soLuong) * i.donGia }
-              : i
-          ),
-        };
-      }
-      const newItem: GioHangItem = {
-        bienTheId: bienThe.id,
-        soLuong,
-        donGia: bienThe.giaBan,
-        thanhTien: soLuong * bienThe.giaBan,
-        tenSanPham: sanPham.ten,
-        tenBienThe: bienThe.tenBienThe,
-      };
-      return { items: [...state.items, newItem] };
-    });
+    const exists = get().items.find((item) => item.bienTheId === bienThe.id);
+    const soLuongMoi = (exists?.soLuong ?? 0) + soLuong;
+    if (soLuong <= 0 || soLuongMoi > bienThe.soLuongTon) return false;
+
+    if (exists) {
+      set((state) => ({
+        items: state.items.map((item) =>
+          item.bienTheId === bienThe.id
+            ? { ...item, soLuong: soLuongMoi, thanhTien: soLuongMoi * item.donGia }
+            : item
+        ),
+      }));
+      return true;
+    }
+
+    set((state) => ({
+      items: [
+        ...state.items,
+        {
+          bienTheId: bienThe.id,
+          soLuong,
+          donGia: bienThe.giaBan,
+          thanhTien: soLuong * bienThe.giaBan,
+          tenSanPham: sanPham.ten,
+          tenBienThe: bienThe.tenBienThe,
+          soLuongTon: bienThe.soLuongTon,
+        },
+      ],
+    }));
+    return true;
   },
 
   capNhat: (bienTheId, soLuong) => {
     if (soLuong <= 0) {
       get().xoa(bienTheId);
-      return;
+      return true;
     }
+
+    const item = get().items.find((current) => current.bienTheId === bienTheId);
+    if (!item || soLuong > item.soLuongTon) return false;
+
     set((state) => ({
       items: state.items.map((i) =>
         i.bienTheId === bienTheId
@@ -63,6 +81,7 @@ export const useGioHangStore = create<GioHangState>((set, get) => ({
           : i
       ),
     }));
+    return true;
   },
 
   xoa: (bienTheId) =>
@@ -73,4 +92,8 @@ export const useGioHangStore = create<GioHangState>((set, get) => ({
   tongTien: () => get().items.reduce((sum, i) => sum + i.thanhTien, 0),
 
   soMon: () => get().items.reduce((sum, i) => sum + i.soLuong, 0),
+}), {
+  name: 'gio-hang',
+  storage: createJSONStorage(() => AsyncStorage),
+  partialize: (state) => ({ nguoiDungId: state.nguoiDungId, items: state.items }),
 }));

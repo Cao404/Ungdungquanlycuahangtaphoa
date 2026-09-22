@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { Prisma } from '@prisma/client';
 
 // Helper chuẩn hoá response JSON trả về client
 // Kiểu trả về là void để dùng được với `return ok(res, ...)` trong RequestHandler
@@ -28,7 +29,22 @@ export const notFound = (res: Response, message = 'Không tìm thấy'): void =>
 
 export const serverError = (res: Response, error: unknown): void => {
   console.error(error);
-  const message = error instanceof Error ? error.message : 'Lỗi server';
-  res.status(500).json({ success: false, message });
+  if (
+    error instanceof Prisma.PrismaClientInitializationError ||
+    (error instanceof Prisma.PrismaClientKnownRequestError && ['P1001', 'P1002'].includes(error.code))
+  ) {
+    res.status(503).json({
+      success: false,
+      message: 'Không kết nối được cơ sở dữ liệu. Hãy kiểm tra SQL Server và cấu hình DATABASE_URL trên máy chạy backend.',
+    });
+    return;
+  }
+  const detail = process.env.NODE_ENV === 'development' && error instanceof Error
+    ? error.message
+    : undefined;
+  res.status(500).json({
+    success: false,
+    message: detail ?? 'Có lỗi xảy ra trên máy chủ, vui lòng thử lại',
+  });
 };
 

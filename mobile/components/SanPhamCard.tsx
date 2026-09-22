@@ -9,8 +9,10 @@ interface Props {
 }
 
 export default function SanPhamCard({ sanPham, onPress }: Props) {
-  const coNhieuBienThe = sanPham.bienThes.length > 1;
-  const giaTu = Math.min(...sanPham.bienThes.map((b) => b.giaBan));
+  const coNhieuBienThe = sanPham.bienThe.length > 1;
+  const giaTu = sanPham.bienThe.length
+    ? Math.min(...sanPham.bienThe.map((item) => item.giaBan))
+    : null;
 
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress(sanPham)} activeOpacity={0.8}>
@@ -22,7 +24,9 @@ export default function SanPhamCard({ sanPham, onPress }: Props) {
         <Text style={styles.ten} numberOfLines={2}>{sanPham.ten}</Text>
         {sanPham.thuongHieu && <Text style={styles.brand}>{sanPham.thuongHieu}</Text>}
         <Text style={styles.gia}>
-          {coNhieuBienThe ? 'Từ ' : ''}{giaTu.toLocaleString('vi-VN')}đ
+          {giaTu === null
+            ? 'Chưa có giá'
+            : `${coNhieuBienThe ? 'Từ ' : ''}${giaTu.toLocaleString('vi-VN')}đ`}
         </Text>
         <Text style={styles.tag}>{sanPham.danhMuc}</Text>
       </View>

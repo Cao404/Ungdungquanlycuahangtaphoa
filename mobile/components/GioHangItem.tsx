@@ -25,7 +25,11 @@ export default function GioHangItemComp({ item, onTang, onGiam, onXoa }: Props) 
             <Text style={styles.btnTxt}>−</Text>
           </TouchableOpacity>
           <Text style={styles.sl}>{item.soLuong}</Text>
-          <TouchableOpacity style={styles.btn} onPress={onTang}>
+          <TouchableOpacity
+            style={[styles.btn, item.soLuong >= item.soLuongTon && styles.btnDisabled]}
+            onPress={onTang}
+            disabled={item.soLuong >= item.soLuongTon}
+          >
             <Text style={styles.btnTxt}>+</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onXoa} style={styles.xoa}>
@@ -55,6 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center',
   },
   btnTxt: { fontSize: 18, fontWeight: '700', color: Colors.primary },
+  btnDisabled: { opacity: 0.4 },
   sl: { minWidth: 22, textAlign: 'center', fontSize: 15, fontWeight: '700' },
   xoa: { padding: 4 },
   xoaTxt: { fontSize: 16 },

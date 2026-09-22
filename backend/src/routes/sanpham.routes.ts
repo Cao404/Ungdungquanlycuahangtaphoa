@@ -7,10 +7,14 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', ctrl.getAll);
+router.get('/danhmuc', ctrl.getDanhMuc);
+router.get('/kiemke-nguon', ctrl.getKiemKeNguon);
 router.get('/:id', ctrl.getOne);
+
+// Các API bên dưới chỉ phục vụ quản trị, nhân viên bán hàng không được gọi.
+router.use(requireRole('admin'));
 router.post('/', ctrl.createOne);
 router.put('/:id', ctrl.updateOne);
-// Chỉ admin mới được xoá sản phẩm
-router.delete('/:id', requireRole('admin'), ctrl.deleteOne);
+router.delete('/:id', ctrl.deleteOne);
 
 export default router;

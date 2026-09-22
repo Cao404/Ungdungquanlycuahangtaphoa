@@ -1,7 +1,7 @@
 export type VaiTro = 'admin' | 'nhanvien';
 
 export interface NguoiDung {
-  id: string;
+  id: number;
   hoTen: string;
   taiKhoan: string;
   vaiTro: VaiTro;

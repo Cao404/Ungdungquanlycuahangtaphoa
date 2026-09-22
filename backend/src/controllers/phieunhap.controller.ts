@@ -12,7 +12,7 @@ export const createOne: RequestHandler = async (req, res) => {
   if (!parse.success) return badRequest(res, parse.error.errors[0].message);
 
   try {
-    const phieu = await taoPhieuNhap(req.user!.id, parse.data as any);
+    const phieu = await taoPhieuNhap(req.user!.id, parse.data);
     created(res, phieu, 'Tạo phiếu nhập thành công');
   } catch (e: any) {
     badRequest(res, e.message);

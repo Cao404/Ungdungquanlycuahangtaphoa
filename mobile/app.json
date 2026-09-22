@@ -6,9 +6,6 @@
     "scheme": "quanlytaphoa",
     "orientation": "portrait",
     "platforms": ["ios", "android"],
-    "plugins": ["expo-router"],
-    "extra": {
-      "API_BASE_URL": "http://192.168.1.100:8080/api"
-    }
+    "plugins": ["expo-router"]
   }
 }
