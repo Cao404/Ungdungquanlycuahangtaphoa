@@ -1,6 +1,19 @@
 import { RequestHandler } from 'express';
 import prisma from '../config/database';
-import { ok, created, notFound, badRequest, serverError } from '../utils/response';
+import { ok, created, notFound, badRequest, conflict, serverError } from '../utils/response';
+import { BarcodeValidationError, isUniqueConstraintError, normalizeBarcode } from '../utils/barcode';
+
+async function findBarcodeOwner(barcode: string, excludeId?: number) {
+  return prisma.bienThe.findFirst({
+    where: { barcode, ...(excludeId ? { id: { not: excludeId } } : {}) },
+    include: { sanPham: { select: { ten: true } } },
+  });
+}
+
+function duplicateBarcodeMessage(barcode: string, owner?: { sanPham?: { ten: string }; giaTri: unknown; donVi: string } | null) {
+  if (!owner) return `Mã vạch ${barcode} đã được sử dụng cho một loại sản phẩm khác.`;
+  return `Mã vạch ${barcode} đã được gán cho ${owner.sanPham?.ten ?? 'sản phẩm khác'} (${owner.giaTri} ${owner.donVi}).`;
+}
 
 export const getAll: RequestHandler = async (_req, res) => {
   try {
@@ -35,6 +48,12 @@ export const createOne: RequestHandler = async (req, res) => {
     const { sanPhamId, giaTri, donVi, giaNhap, giaBan, nguongCanhBao, trangThai } = req.body;
     if (!sanPhamId) return badRequest(res, 'sanPhamId là bắt buộc');
 
+    const barcode = normalizeBarcode(req.body.barcode);
+    if (barcode) {
+      const owner = await findBarcodeOwner(barcode);
+      if (owner) return conflict(res, duplicateBarcodeMessage(barcode, owner), 'BARCODE_ALREADY_EXISTS');
+    }
+
     const data = await prisma.bienThe.create({
       data: {
         sanPhamId: Number(sanPhamId),
@@ -45,11 +64,14 @@ export const createOne: RequestHandler = async (req, res) => {
         soLuongTon: 0, // BẮT BUỘC BỎ QUA nếu gửi lên, luôn = 0
         nguongCanhBao: Number(nguongCanhBao) || 5,
         trangThai: trangThai !== undefined ? Boolean(trangThai) : true,
+        barcode,
       },
     });
 
     created(res, data);
   } catch (e) {
+    if (e instanceof BarcodeValidationError) return badRequest(res, e.message, 'INVALID_BARCODE');
+    if (isUniqueConstraintError(e)) return conflict(res, 'Mã vạch đã được sử dụng cho một loại sản phẩm khác.', 'BARCODE_ALREADY_EXISTS');
     serverError(res, e);
   }
 };
@@ -59,6 +81,17 @@ export const updateOne: RequestHandler = async (req, res) => {
   try {
     const id = Number(req.params.id);
     const { giaNhap, giaBan, giaTri, donVi, nguongCanhBao, trangThai } = req.body;
+    if (!Number.isInteger(id) || id <= 0) return badRequest(res, 'ID loại sản phẩm không hợp lệ');
+
+    const current = await prisma.bienThe.findUnique({ where: { id } });
+    if (!current) return notFound(res, 'Biến thể không tồn tại');
+
+    const hasBarcode = Object.prototype.hasOwnProperty.call(req.body, 'barcode');
+    const barcode = hasBarcode ? normalizeBarcode(req.body.barcode) : undefined;
+    if (barcode) {
+      const owner = await findBarcodeOwner(barcode, id);
+      if (owner) return conflict(res, duplicateBarcodeMessage(barcode, owner), 'BARCODE_ALREADY_EXISTS');
+    }
 
     const data = await prisma.bienThe.update({
       where: { id },
@@ -69,12 +102,15 @@ export const updateOne: RequestHandler = async (req, res) => {
         ...(donVi !== undefined && { donVi }),
         ...(nguongCanhBao !== undefined && { nguongCanhBao: Number(nguongCanhBao) }),
         ...(trangThai !== undefined && { trangThai: Boolean(trangThai) }),
+        ...(hasBarcode && { barcode }),
         // soLuongTon BỊ BỎ QUA HOÀN TOÀN, không cho sửa tay
       },
     });
 
     ok(res, data, 'Cập nhật biến thể thành công');
   } catch (e) {
+    if (e instanceof BarcodeValidationError) return badRequest(res, e.message, 'INVALID_BARCODE');
+    if (isUniqueConstraintError(e)) return conflict(res, 'Mã vạch đã được sử dụng cho một loại sản phẩm khác.', 'BARCODE_ALREADY_EXISTS');
     serverError(res, e);
   }
 };
