@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import { authenticate } from '../middlewares/auth.middleware';
+import * as ctrl from '../controllers/scanner.controller';
+const router = Router();
+router.use(authenticate);
+router.post('/sessions', ctrl.createSession);
+router.get('/sessions/:id', ctrl.getSession);
+router.post('/sessions/:id/join', ctrl.joinSession);
+router.post('/sessions/:id/scans', ctrl.scan);
+router.post('/sessions/:id/disconnect', ctrl.disconnect);
+router.post('/sessions/:id/close', ctrl.close);
+export default router;

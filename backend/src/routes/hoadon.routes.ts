@@ -6,6 +6,8 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', ctrl.getAll);
+router.post('/quote', ctrl.quote);
+router.get('/request/:requestId', ctrl.getByRequestId);
 router.get('/:id', ctrl.getOne);
 router.post('/', ctrl.createOne);
 

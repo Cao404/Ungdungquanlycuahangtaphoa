@@ -13,6 +13,7 @@ web-build/
 # Expo & React Native
 .expo/
 **/.expo/
+**/.expo-*/
 *.jks
 *.p8
 *.p12
@@ -39,5 +40,9 @@ pnpm-debug.log*
 # IDE & OS Files
 .vscode/
 .idea/
+.kiro/
 .DS_Store
 Thumbs.db
+
+# Runtime-generated files
+backend/uploads/

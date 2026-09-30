@@ -2,26 +2,28 @@ import prisma from '../config/database';
 
 // Báo cáo doanh thu theo khoảng thời gian
 export async function doanhThu(tu: string, den: string) {
+  const denNgay = new Date(`${den}T00:00:00`);
+  denNgay.setDate(denNgay.getDate() + 1);
   const hoaDons = await prisma.hoaDon.findMany({
     where: {
-      ngayBan: { gte: new Date(tu), lte: new Date(den) },
+      ngayBan: { gte: new Date(`${tu}T00:00:00`), lt: denNgay },
       trangThaiTT: 'daTT',
     },
-    select: { tongTien: true, giamGia: true, ngayBan: true },
+    select: { tongTien: true, ngayBan: true },
   });
 
-  const tong = hoaDons.reduce(
-    (s, h) => s + (Number(h.tongTien) - Number(h.giamGia)),
-    0
-  );
+  // tongTien đã là tạm tính - giảm giá + thuế, không trừ giảm giá lần hai.
+  const tong = hoaDons.reduce((s, h) => s + Number(h.tongTien), 0);
   return { tuNgay: tu, denNgay: den, soHoaDon: hoaDons.length, tongDoanhThu: tong };
 }
 
 // Top sản phẩm bán chạy theo khoảng thời gian
 export async function banChay(tu: string, den: string) {
+  const denNgay = new Date(`${den}T00:00:00`);
+  denNgay.setDate(denNgay.getDate() + 1);
   const chiTiets = await prisma.chiTietHoaDon.groupBy({
     by: ['bienTheId'],
-    where: { hoaDon: { ngayBan: { gte: new Date(tu), lte: new Date(den) } } },
+    where: { hoaDon: { ngayBan: { gte: new Date(`${tu}T00:00:00`), lt: denNgay } } },
     _sum: { soLuong: true, thanhTien: true },
     orderBy: { _sum: { soLuong: 'desc' } },
     take: 20,

@@ -17,7 +17,7 @@ export const joinSession: RequestHandler = (req, res) => {
   if (typeof req.body?.deviceId !== 'string' || req.body.deviceId.length < 8) return badRequest(res, 'Thiết bị quét không hợp lệ');
   const result = joinScannerSession(req.params.id, req.user!.id, req.body.deviceId);
   if (!result) return notFound(res, 'Phiên quét không tồn tại hoặc đã hết hạn');
-  if ('conflict' in result) return res.status(409).json({ success: false, message: 'Phiên quét đã được kết nối với một iPhone khác', errorCode: 'SCANNER_ALREADY_CONNECTED' });
+  if ('conflict' in result) return res.status(409).json({ success: false, message: 'Phiên quét đã được kết nối với một thiết bị khác', errorCode: 'SCANNER_ALREADY_CONNECTED' });
   void ghiNhatKy({ userId: req.user!.id, hanhDong: 'SCANNER_PAIR', trangThai: 'SUCCESS', doiTuong: 'ScannerSession', doiTuongId: result.sessionId });
   ok(res, result);
 };

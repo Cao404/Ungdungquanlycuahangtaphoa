@@ -30,7 +30,11 @@ export const createOne: RequestHandler = async (req, res) => {
 
   try {
     const data = await taoPhieuKiemKe(req.user!.id, parse.data);
-    created(res, data, 'Tạo phiếu kiểm kê thành công, đang chờ admin duyệt');
+    if (req.user!.vaiTro === 'admin' || req.user!.vaiTro === 'owner') {
+      const approved = await duyetPhieu(data!.id, req.user!.id);
+      return created(res, approved, 'Đã kiểm kê và cập nhật tồn kho');
+    }
+    created(res, data, 'Tạo phiếu kiểm kê thành công, đang chờ chủ cửa hàng duyệt');
   } catch (e: any) {
     badRequest(res, e.message);
   }
