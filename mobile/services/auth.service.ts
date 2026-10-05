@@ -1,4 +1,4 @@
-import { apiPost } from './api';
+import { apiGet, apiPost } from './api';
 import { NguoiDung } from '../types/NguoiDung';
 
 interface LoginResponse {
@@ -9,4 +9,6 @@ interface LoginResponse {
 export const authService = {
   login: (taiKhoan: string, matKhau: string) =>
     apiPost<LoginResponse>('/auth/login', { taiKhoan, matKhau }),
+  me: () => apiGet<NguoiDung>('/auth/me'),
+  logout: () => apiPost<void>('/auth/logout', {}),
 };
