@@ -9,6 +9,7 @@ dist/
 build/
 backend/dist/
 web-build/
+web-admin/.vite/
 
 # Expo & React Native
 .expo/
