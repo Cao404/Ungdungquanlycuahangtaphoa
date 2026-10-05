@@ -1,4 +1,4 @@
-export type VaiTro = 'admin' | 'nhanvien';
+export type VaiTro = 'admin' | 'owner' | 'nhanvien';
 
 // Payload được lưu trong JWT
 export interface JwtPayload {
