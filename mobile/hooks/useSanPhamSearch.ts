@@ -1,40 +1,44 @@
-import { useCallback, useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { getApiErrorMessage } from '../services/api';
 import { sanPhamService } from '../services/sanpham.service';
 import { SanPham } from '../types/SanPham';
-import { useFetch } from './useFetch';
-
-export const DANH_MUC = ['Tất cả', 'Thực phẩm', 'Đồ uống', 'Gia vị', 'Chăm sóc', 'Khác'];
 
 export function useSanPhamSearch() {
   const [query, setQuery] = useState('');
-  const [danhMuc, setDanhMuc] = useState('');
+  const [danhMuc, setDanhMuc] = useState('Tất cả');
+  const [categories, setCategories] = useState<string[]>(['Tất cả']);
+  const [sanPhams, setSanPhams] = useState<SanPham[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const focusedOnce = useRef(false);
 
-  const fetcher = useCallback(
-    () => sanPhamService.search(query.trim(), danhMuc),
-    [query, danhMuc]
-  );
-  const { data, loading, error, refetch } = useFetch(fetcher, [fetcher]);
+  useFocusEffect(useCallback(() => {
+    if (focusedOnce.current) setReloadKey((value) => value + 1);
+    else focusedOnce.current = true;
+  }, []));
 
-  const selectedDanhMuc = useMemo(() => danhMuc || 'Tất cả', [danhMuc]);
+  useEffect(() => {
+    sanPhamService.getCategories().then((items) => setCategories(['Tất cả', ...items])).catch(() => undefined);
+  }, []);
 
-  const chonDanhMuc = (value: string) => {
-    setDanhMuc(value === 'Tất cả' ? '' : value);
-  };
-
-  const chonSanPham = (sanPham: SanPham) => {
-    router.push({ pathname: '/(tabs)/banhang/chon-bien-the', params: { id: sanPham.id } });
-  };
+  useEffect(() => {
+    let active = true;
+    const timer = setTimeout(async () => {
+      setLoading(true); setError(null);
+      try {
+        const data = await sanPhamService.getAll(query.trim(), danhMuc === 'Tất cả' ? '' : danhMuc);
+        if (active) setSanPhams(data);
+      } catch (e) { if (active) setError(getApiErrorMessage(e, 'Không thể tải sản phẩm.')); }
+      finally { if (active) setLoading(false); }
+    }, query ? 320 : 0);
+    return () => { active = false; clearTimeout(timer); };
+  }, [query, danhMuc, reloadKey]);
 
   return {
-    query,
-    setQuery,
-    danhMuc: selectedDanhMuc,
-    chonDanhMuc,
-    sanPhams: data ?? [],
-    loading,
-    error,
-    refetch,
-    chonSanPham,
+    query, setQuery, danhMuc, chonDanhMuc: setDanhMuc, categories, sanPhams, loading, error,
+    refetch: () => setReloadKey((value) => value + 1),
+    chonSanPham: (sanPham: SanPham) => router.push({ pathname: '/(tabs)/banhang/chon-bien-the', params: { id: sanPham.id } }),
   };
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { GioHangItem } from '../store/gioHangStore';
 import Colors from '../constants/colors';
 
@@ -21,15 +22,15 @@ export default function GioHangItemComp({ item, onTang, onGiam, onXoa }: Props) 
       <View style={styles.right}>
         <Text style={styles.thanh}>{item.thanhTien.toLocaleString('vi-VN')}đ</Text>
         <View style={styles.controls}>
-          <TouchableOpacity style={styles.btn} onPress={onGiam}>
+          <TouchableOpacity accessibilityLabel="Giảm số lượng" style={styles.btn} onPress={onGiam}>
             <Text style={styles.btnTxt}>−</Text>
           </TouchableOpacity>
           <Text style={styles.sl}>{item.soLuong}</Text>
-          <TouchableOpacity style={styles.btn} onPress={onTang}>
+          <TouchableOpacity accessibilityLabel="Tăng số lượng" style={styles.btn} onPress={onTang}>
             <Text style={styles.btnTxt}>+</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onXoa} style={styles.xoa}>
-            <Text style={styles.xoaTxt}>🗑</Text>
+          <TouchableOpacity accessibilityLabel="Xóa sản phẩm" onPress={onXoa} style={styles.xoa}>
+            <Ionicons name="trash-outline" size={19} color={Colors.danger} />
           </TouchableOpacity>
         </View>
       </View>
@@ -51,11 +52,10 @@ const styles = StyleSheet.create({
   thanh: { fontSize: 15, fontWeight: '800', color: Colors.primary },
   controls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   btn: {
-    width: 30, height: 30, borderRadius: 8,
+    width: 44, height: 44, borderRadius: 10,
     backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center',
   },
   btnTxt: { fontSize: 18, fontWeight: '700', color: Colors.primary },
   sl: { minWidth: 22, textAlign: 'center', fontSize: 15, fontWeight: '700' },
-  xoa: { padding: 4 },
-  xoaTxt: { fontSize: 16 },
+  xoa: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });

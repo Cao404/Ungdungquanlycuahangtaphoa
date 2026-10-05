@@ -4,12 +4,15 @@ import { router } from 'expo-router';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import Colors from '../../constants/colors';
+import { useGioHangStore } from '../../store/gioHangStore';
 
 export default function TaiKhoanScreen() {
   const { nguoiDung, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
+  const clearCart = useGioHangStore((s) => s.xoaHet);
+  const handleLogout = async () => {
+    clearCart();
+    await logout();
     router.replace('/login');
   };
 
@@ -32,6 +35,7 @@ export default function TaiKhoanScreen() {
         </View>
       </View>
 
+      <Button title="Dùng thiết bị này làm máy quét phụ" variant="outline" onPress={() => router.push('/remote-scanner')} style={styles.scanner} />
       <Button title="Đăng xuất" variant="danger" onPress={handleLogout} style={styles.logout} />
     </View>
   );
@@ -71,4 +75,5 @@ const styles = StyleSheet.create({
   value: { color: Colors.text, fontSize: 14, fontWeight: '700' },
   active: { color: Colors.success },
   logout: { width: '100%', marginTop: 24 },
+  scanner: { width: '100%', marginTop: 24 },
 });

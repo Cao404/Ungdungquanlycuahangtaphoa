@@ -1,127 +1,53 @@
-import React, { useState } from 'react';
-import {
-  View, Text, FlatList, StyleSheet, Alert,
-  Modal, TouchableOpacity,
-} from 'react-native';
+import React from 'react';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useGioHang } from '../../hooks/useGioHang';
 import GioHangItemComp from '../../components/GioHangItem';
 import Button from '../../components/ui/Button';
-import { HinhThucTT } from '../../types/HoaDon';
 import Colors from '../../constants/colors';
-
-const HINH_THUC: { key: HinhThucTT; label: string }[] = [
-  { key: 'tienmat',     label: '💵 Tiền mặt' },
-  { key: 'chuyenkhoan', label: '📲 Chuyển khoản' },
-  { key: 'congno',      label: '📋 Công nợ' },
-];
+import { useGioHang } from '../../hooks/useGioHang';
 
 export default function GioHangScreen() {
-  const { items, capNhat, xoa, xoaHet, tongTien, soMon, thanhToan, dangThanhToan } = useGioHang();
-  const [showModal, setShowModal] = useState(false);
-  const [hinhThuc, setHinhThuc] = useState<HinhThucTT>('tienmat');
+  const { items, capNhat, xoa, xoaHet, tongTien, soMon } = useGioHang();
+  const clear = () => Alert.alert('Xóa giỏ hàng?', 'Toàn bộ sản phẩm đã chọn sẽ bị xóa.', [
+    { text: 'Giữ lại', style: 'cancel' },
+    { text: 'Xóa', style: 'destructive', onPress: xoaHet },
+  ]);
 
-  const handleThanhToan = async () => {
-    try {
-      await thanhToan(hinhThuc);
-      setShowModal(false);
-      Alert.alert('Thành công', 'Hoá đơn đã được tạo!', [
-        { text: 'Xem lịch sử', onPress: () => router.replace('/(tabs)/lichsu') },
-        { text: 'OK' },
-      ]);
-    } catch (e: any) {
-      Alert.alert('Lỗi', e?.response?.data?.message ?? e.message);
-    }
-  };
+  if (!items.length) return <View style={styles.empty}>
+    <View style={styles.emptyIcon}><Ionicons name="basket-outline" size={30} color={Colors.primary} /></View>
+    <Text style={styles.emptyTitle}>Giỏ hàng đang trống</Text>
+    <Text style={styles.emptyText}>Quét mã vạch hoặc chọn sản phẩm để bắt đầu đơn hàng.</Text>
+    <Button title="Chọn sản phẩm" onPress={() => router.replace('/(tabs)/banhang')} />
+  </View>;
 
-  if (items.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyIcon}>🛒</Text>
-        <Text style={styles.emptyTxt}>Giỏ hàng trống</Text>
-        <Button title="Chọn sản phẩm" variant="outline" onPress={() => router.replace('/(tabs)/banhang')} />
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.bienTheId}
-        renderItem={({ item }) => (
-          <GioHangItemComp
-            item={item}
-            onTang={() => capNhat(item.bienTheId, item.soLuong + 1)}
-            onGiam={() => capNhat(item.bienTheId, item.soLuong - 1)}
-            onXoa={() => xoa(item.bienTheId)}
-          />
-        )}
-        contentContainerStyle={styles.list}
-      />
-
-      <View style={styles.footer}>
-        <View style={styles.tongRow}>
-          <Text style={styles.tongLabel}>{soMon} món</Text>
-          <Text style={styles.tongSo}>{tongTien.toLocaleString('vi-VN')}đ</Text>
-        </View>
-        <View style={styles.btnRow}>
-          <Button title="Xoá hết" variant="ghost" onPress={xoaHet} />
-          <Button title="Thanh toán" onPress={() => setShowModal(true)} style={styles.btnTT} />
-        </View>
-      </View>
-
-      <Modal visible={showModal} transparent animationType="slide">
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setShowModal(false)} />
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>Chọn hình thức thanh toán</Text>
-          {HINH_THUC.map((ht) => (
-            <TouchableOpacity
-              key={ht.key}
-              style={[styles.htItem, hinhThuc === ht.key && styles.htActive]}
-              onPress={() => setHinhThuc(ht.key)}
-            >
-              <Text style={styles.htLabel}>{ht.label}</Text>
-              {hinhThuc === ht.key && <Text style={styles.check}>✓</Text>}
-            </TouchableOpacity>
-          ))}
-          <Text style={styles.totalConfirm}>Tổng: {tongTien.toLocaleString('vi-VN')}đ</Text>
-          <Button title="Xác nhận thanh toán" onPress={handleThanhToan} loading={dangThanhToan} />
-          <Button title="Huỷ" variant="outline" onPress={() => setShowModal(false)} />
-        </View>
-      </Modal>
+  return <View style={styles.page}>
+    <View style={styles.heading}>
+      <View><Text style={styles.title}>Đơn hàng hiện tại</Text><Text style={styles.subtitle}>{soMon} sản phẩm đã chọn</Text></View>
+      <Button title="Xóa hết" size="sm" variant="ghost" onPress={clear} />
     </View>
-  );
+    <FlatList data={items} keyExtractor={(item) => item.bienTheId} contentContainerStyle={styles.list}
+      renderItem={({ item }) => <GioHangItemComp item={item}
+        onTang={() => { if (!capNhat(item.bienTheId, item.soLuong + 1)) Alert.alert('Không đủ tồn kho', `Chỉ còn ${item.tonKho} sản phẩm.`); }}
+        onGiam={() => capNhat(item.bienTheId, item.soLuong - 1)} onXoa={() => xoa(item.bienTheId)} />} />
+    <View style={styles.footer}>
+      <View><Text style={styles.totalLabel}>Tạm tính</Text><Text style={styles.totalHint}>Giá chính xác được kiểm tra lại ở bước sau</Text></View>
+      <Text style={styles.total}>{tongTien.toLocaleString('vi-VN')}đ</Text>
+      <Button title="Tiếp tục thanh toán" size="lg" onPress={() => router.push('/payment')} />
+    </View>
+  </View>;
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  list:      { paddingBottom: 16 },
-  footer: {
-    backgroundColor: Colors.surface, padding: 16,
-    borderTopWidth: 1, borderTopColor: Colors.border, gap: 10,
-  },
-  tongRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  tongLabel: { fontSize: 14, color: Colors.textSecondary },
-  tongSo:  { fontSize: 22, fontWeight: '800', color: Colors.primary },
-  btnRow:  { flexDirection: 'row', gap: 10 },
-  btnTT:   { flex: 1 },
-  empty:   { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 },
-  emptyIcon: { fontSize: 60 },
-  emptyTxt: { fontSize: 18, color: Colors.textMuted, fontWeight: '600' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: Colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: 24, gap: 12,
-  },
-  sheetTitle: { fontSize: 18, fontWeight: '800', color: Colors.text, marginBottom: 4 },
-  htItem: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 14, borderRadius: 10, borderWidth: 1.5, borderColor: Colors.border,
-  },
-  htActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  htLabel: { fontSize: 15, fontWeight: '600', color: Colors.text },
-  check:   { fontSize: 18, color: Colors.primary, fontWeight: '700' },
-  totalConfirm: { fontSize: 16, fontWeight: '700', color: Colors.primary, textAlign: 'center' },
+  page: { flex: 1, backgroundColor: Colors.background },
+  heading: { padding: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  title: { fontSize: 22, fontWeight: '800', color: Colors.text }, subtitle: { marginTop: 3, color: Colors.textSecondary },
+  list: { paddingBottom: 12 },
+  footer: { gap: 10, padding: 18, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.surface },
+  totalLabel: { color: Colors.textSecondary, fontWeight: '700' }, totalHint: { marginTop: 2, color: Colors.textMuted, fontSize: 12 },
+  total: { fontSize: 28, fontWeight: '900', color: Colors.primary },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
+  emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primarySoft },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: Colors.text, marginTop: 18 },
+  emptyText: { color: Colors.textSecondary, textAlign: 'center', lineHeight: 21, marginTop: 7, marginBottom: 22 },
 });

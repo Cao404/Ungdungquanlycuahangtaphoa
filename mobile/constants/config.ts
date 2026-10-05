@@ -9,7 +9,10 @@ import Constants from 'expo-constants';
  *   - Kiểm tra IP: Windows dùng ipconfig, Mac/Linux dùng ifconfig
  *   - Cập nhật trong app.json > extra > API_BASE_URL rồi restart expo
  */
-export const API_BASE_URL: string =
-  (Constants.expoConfig?.extra?.API_BASE_URL as string | undefined) ?? '';
+const extra = Constants.expoConfig?.extra ?? {};
+// LDPlayer is currently loading Expo over the LAN address, so API traffic must
+// use that exact reachable host address as well. 10.0.2.2 only works in some
+// Android SDK emulator configurations and is not the active LDPlayer route.
+export const API_BASE_URL: string = (extra.API_BASE_URL as string | undefined) ?? '';
 
 export const APP_NAME = 'Quản Lý Tạp Hóa';

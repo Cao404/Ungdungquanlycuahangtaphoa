@@ -32,7 +32,7 @@ export default function Button({
   ];
 
   return (
-    <TouchableOpacity style={btnStyles} disabled={loading || props.disabled} activeOpacity={0.75} {...props}>
+    <TouchableOpacity accessibilityRole="button" style={btnStyles} disabled={loading || props.disabled} activeOpacity={0.75} {...props}>
       {loading
         ? <ActivityIndicator color={variant === 'primary' ? Colors.white : Colors.primary} size="small" />
         : <Text style={textStyles}>{title}</Text>
@@ -43,8 +43,8 @@ export default function Button({
 
 const styles = StyleSheet.create({
   base:    { borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary },
-  sm:      { paddingVertical: 8,  paddingHorizontal: 16 },
-  md:      { paddingVertical: 13, paddingHorizontal: 24 },
+  sm:      { minHeight: 44, paddingVertical: 8,  paddingHorizontal: 16 },
+  md:      { minHeight: 48, paddingVertical: 13, paddingHorizontal: 24 },
   lg:      { paddingVertical: 16, paddingHorizontal: 32 },
   outline: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: Colors.primary },
   danger:  { backgroundColor: Colors.danger },

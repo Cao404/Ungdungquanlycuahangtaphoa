@@ -1,76 +1,10 @@
 import { create } from 'zustand';
-import { BienThe, SanPham } from '../types/SanPham';
-import { ChiTietHoaDon } from '../types/HoaDon';
-
-// Mỗi item trong giỏ = chi tiết hoá đơn + info hiển thị
-export interface GioHangItem extends ChiTietHoaDon {
-  tenSanPham: string;
-  tenBienThe: string;
-}
-
-interface GioHangState {
-  items: GioHangItem[];
-
-  // Thêm vào giỏ (nếu đã có cùng bienTheId thì cộng dồn số lượng)
-  them: (sanPham: SanPham, bienThe: BienThe, soLuong: number) => void;
-
-  // Cập nhật số lượng; soLuong <= 0 thì tự xoá
-  capNhat: (bienTheId: string, soLuong: number) => void;
-
-  xoa: (bienTheId: string) => void;
-  xoaHet: () => void;
-
-  tongTien: () => number;
-  soMon: () => number;
-}
-
-export const useGioHangStore = create<GioHangState>((set, get) => ({
+import { BienThe, SanPham, variantLabel } from '../types/SanPham';
+export interface GioHangItem { bienTheId: string; soLuong: number; donGia: number; thanhTien: number; tenSanPham: string; tenBienThe: string; tonKho: number; }
+interface State { items: GioHangItem[]; them: (p: SanPham, v: BienThe, q: number) => boolean; capNhat: (id: string, q: number) => boolean; xoa: (id: string) => void; xoaHet: () => void; tongTien: () => number; soMon: () => number; }
+export const useGioHangStore = create<State>((set, get) => ({
   items: [],
-
-  them: (sanPham, bienThe, soLuong) => {
-    set((state) => {
-      const exists = state.items.find((i) => i.bienTheId === bienThe.id);
-      if (exists) {
-        return {
-          items: state.items.map((i) =>
-            i.bienTheId === bienThe.id
-              ? { ...i, soLuong: i.soLuong + soLuong, thanhTien: (i.soLuong + soLuong) * i.donGia }
-              : i
-          ),
-        };
-      }
-      const newItem: GioHangItem = {
-        bienTheId: bienThe.id,
-        soLuong,
-        donGia: bienThe.giaBan,
-        thanhTien: soLuong * bienThe.giaBan,
-        tenSanPham: sanPham.ten,
-        tenBienThe: bienThe.tenBienThe,
-      };
-      return { items: [...state.items, newItem] };
-    });
-  },
-
-  capNhat: (bienTheId, soLuong) => {
-    if (soLuong <= 0) {
-      get().xoa(bienTheId);
-      return;
-    }
-    set((state) => ({
-      items: state.items.map((i) =>
-        i.bienTheId === bienTheId
-          ? { ...i, soLuong, thanhTien: soLuong * i.donGia }
-          : i
-      ),
-    }));
-  },
-
-  xoa: (bienTheId) =>
-    set((state) => ({ items: state.items.filter((i) => i.bienTheId !== bienTheId) })),
-
-  xoaHet: () => set({ items: [] }),
-
-  tongTien: () => get().items.reduce((sum, i) => sum + i.thanhTien, 0),
-
-  soMon: () => get().items.reduce((sum, i) => sum + i.soLuong, 0),
+  them: (p, v, q) => { const current = get().items.find((i) => i.bienTheId === v.id)?.soLuong ?? 0; if (current + q > v.soLuongTon) return false; set((s) => ({ items: s.items.some((i) => i.bienTheId === v.id) ? s.items.map((i) => i.bienTheId === v.id ? { ...i, soLuong: current + q, thanhTien: (current + q) * i.donGia, tonKho: v.soLuongTon } : i) : [...s.items, { bienTheId: v.id, soLuong: q, donGia: v.giaBan, thanhTien: q * v.giaBan, tenSanPham: p.ten, tenBienThe: variantLabel(v), tonKho: v.soLuongTon }] })); return true; },
+  capNhat: (id, q) => { const item = get().items.find((i) => i.bienTheId === id); if (!item) return false; if (q <= 0) { get().xoa(id); return true; } if (q > item.tonKho) return false; set((s) => ({ items: s.items.map((i) => i.bienTheId === id ? { ...i, soLuong: q, thanhTien: q * i.donGia } : i) })); return true; },
+  xoa: (id) => set((s) => ({ items: s.items.filter((i) => i.bienTheId !== id) })), xoaHet: () => set({ items: [] }), tongTien: () => get().items.reduce((sum, i) => sum + i.thanhTien, 0), soMon: () => get().items.reduce((sum, i) => sum + i.soLuong, 0),
 }));

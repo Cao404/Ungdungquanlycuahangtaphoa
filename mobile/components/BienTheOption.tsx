@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { BienThe } from '../types/SanPham';
+import { BienThe, variantLabel } from '../types/SanPham';
 import Colors from '../constants/colors';
 
 interface Props {
@@ -19,7 +19,7 @@ export default function BienTheOption({ bienThe, selected, onSelect }: Props) {
       disabled={hethang}
       activeOpacity={0.8}
     >
-      <Text style={[styles.ten, selected && styles.tenSelected]}>{bienThe.tenBienThe}</Text>
+      <Text style={[styles.ten, selected && styles.tenSelected]}>{variantLabel(bienThe)}</Text>
       <Text style={[styles.gia, selected && styles.tenSelected]}>
         {bienThe.giaBan.toLocaleString('vi-VN')}đ
       </Text>
