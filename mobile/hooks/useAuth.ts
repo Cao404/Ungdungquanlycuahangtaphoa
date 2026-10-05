@@ -5,10 +5,7 @@ import { authService } from '../services/auth.service';
 import { getApiErrorMessage } from '../services/api';
 
 export function useAuth() {
-  const token = useAuthStore((state) => state.token);
-  const nguoiDung = useAuthStore((state) => state.nguoiDung);
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const clearAuth = useAuthStore((state) => state.logout);
+  const { nguoiDung, setAuth, logout } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,16 +14,20 @@ export function useAuth() {
     setError(null);
     try {
       const { token, nguoiDung: nd } = await authService.login(taiKhoan, matKhau);
-      await useGioHangStore.persist.rehydrate();
-      useGioHangStore.getState().ganNguoiDung(nd.id);
       setAuth(token, nd);
       return true;
-    } catch (loginError: unknown) {
-      setError(getApiErrorMessage(loginError, 'Đăng nhập thất bại'));
+    } catch (e: any) {
+      const msg = e?.response?.data?.message ?? e.message ?? 'Đăng nhập thất bại';
+      setError(msg);
       return false;
     } finally {
       setLoading(false);
     }
+  };
+
+  const logout = async () => {
+    try { await authService.logout(); } catch { /* Local logout must still succeed offline. */ }
+    await clearSession();
   };
 
   const logout = () => {
