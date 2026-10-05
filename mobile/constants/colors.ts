@@ -1,21 +1,7 @@
-const teal = '#0D9488';    // primary
-const dark  = '#111827';
-const gray  = '#6B7280';
-
 const Colors = {
-  primary:        teal,
-  primaryLight:   '#CCFBF1',
-  secondary:      '#F59E0B',
-  danger:         '#EF4444',
-  success:        '#10B981',
-  background:     '#F9FAFB',
-  surface:        '#FFFFFF',
-  border:         '#E5E7EB',
-  text:           dark,
-  textSecondary:  gray,
-  textMuted:      '#9CA3AF',
-  white:          '#FFFFFF',
-  black:          '#000000',
+  primary: '#126B5D', primaryPressed: '#0D554A', primarySoft: '#E4F2EE', primaryLight: '#E4F2EE', accent: '#C77829',
+  background: '#F6F8F7', surface: '#FFFFFF', surfaceMuted: '#EEF3F1', text: '#17221F',
+  textSecondary: '#64736D', textMuted: '#8A9892', border: '#DCE5E1', danger: '#B93831',
+  dangerSoft: '#FDECEA', success: '#167A5B', white: '#FFFFFF', black: '#17221F',
 } as const;
-
 export default Colors;
