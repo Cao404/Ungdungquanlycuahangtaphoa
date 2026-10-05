@@ -13,17 +13,17 @@ type PrismaModelDelegate = {
  * Factory tạo 5 handler CRUD dùng chung cho các bảng đơn giản
  * (NhaCungCap, KhachHang, NguoiDung…)
  */
-export function crudFactory(model: PrismaModelDelegate) {
+export function crudFactory(model: PrismaModelDelegate, defaultOrderBy: any = { id: 'desc' }) {
   const getAll: RequestHandler = async (_req, res) => {
     try {
-      const data = await model.findMany({ orderBy: { taoLuc: 'desc' } });
+      const data = await model.findMany({ orderBy: defaultOrderBy });
       ok(res, data);
     } catch (e) { serverError(res, e); }
   };
 
   const getOne: RequestHandler = async (req, res) => {
     try {
-      const data = await model.findUnique({ where: { id: req.params.id } });
+      const data = await model.findUnique({ where: { id: Number(req.params.id) } });
       if (!data) return notFound(res);
       ok(res, data);
     } catch (e) { serverError(res, e); }
@@ -38,14 +38,14 @@ export function crudFactory(model: PrismaModelDelegate) {
 
   const updateOne: RequestHandler = async (req, res) => {
     try {
-      const data = await model.update({ where: { id: req.params.id }, data: req.body });
+      const data = await model.update({ where: { id: Number(req.params.id) }, data: req.body });
       ok(res, data, 'Cập nhật thành công');
     } catch (e) { serverError(res, e); }
   };
 
   const deleteOne: RequestHandler = async (req, res) => {
     try {
-      await model.delete({ where: { id: req.params.id } });
+      await model.delete({ where: { id: Number(req.params.id) } });
       ok(res, null, 'Xoá thành công');
     } catch (e) { serverError(res, e); }
   };
